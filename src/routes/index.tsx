@@ -88,15 +88,15 @@ function Home() {
         <NetworkBackdrop />
         <Container className="relative py-24 sm:py-32">
           <Reveal className="max-w-3xl">
-            <span className="inline-flex items-center gap-3 rounded-2xl border border-border bg-surface/60 px-4 py-2.5 backdrop-blur-sm">
-              <LogoMark className="h-8 w-8 animate-float motion-reduce:animate-none" />
-              <span className="font-display text-sm font-semibold tracking-tight">
-                Code<span className="text-primary">X</span>Pulse
-                <span className="ml-2 text-xs font-normal text-muted-foreground">
-                  {site.tagline}
-                </span>
-              </span>
-            </span>
+            <a
+              href={site.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="CodeXPulse on GitHub"
+              className="inline-flex rounded-2xl border border-border bg-surface/60 px-4 py-2.5 backdrop-blur-sm transition-colors hover:border-primary/50"
+            >
+              <LogoMark className="h-10 animate-float motion-reduce:animate-none sm:h-11" />
+            </a>
 
             <h1 className="mt-8 text-4xl leading-[1.05] font-semibold text-balance sm:text-6xl">
               Transforming Ideas Into{" "}

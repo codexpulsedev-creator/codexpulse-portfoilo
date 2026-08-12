@@ -1,9 +1,3 @@
-import retro from "@/assets/retro.png.asset.json";
-import cyber from "@/assets/web.png.asset.json";
-import cyberCase from "@/assets/webe.png.asset.json";
-import webService from "@/assets/web.jpeg.asset.json";
-import creative from "@/assets/All.png.asset.json";
-
 export type ProjectCategory =
   | "Web Development"
   | "E-Commerce"
@@ -38,6 +32,14 @@ export type Project = {
   status: ProjectStatus;
 };
 
+const images = {
+  retro: "/projects/retro.png",
+  cyber: "/projects/web.png",
+  cyberCase: "/projects/webe.png",
+  webService: "/projects/web.jpeg",
+  creative: "/projects/all.png",
+} as const;
+
 export const projectCategories: ProjectCategory[] = [
   "Web Development",
   "E-Commerce",
@@ -50,7 +52,7 @@ export const projectCategories: ProjectCategory[] = [
 
 /**
  * Add new projects by appending an object to this array.
- * Images: upload to src/assets and import the generated `.asset.json` pointer.
+ * Images: place files in public/projects/ and reference them with a /projects/... path.
  */
 export const projects: Project[] = [
   {
@@ -62,9 +64,9 @@ export const projects: Project[] = [
       "A complete e-commerce design and front-end system for a vintage audio and vinyl retailer. The work covered the full storefront journey: landing page, collection pages, product detail layouts, merchandise pages and the supporting brand system used across campaign material.",
     categories: ["E-Commerce", "Web Development", "UI/UX"],
     technologies: ["React", "TypeScript", "Tailwind CSS", "Node.js", "REST APIs", "Figma"],
-    image: retro.url,
+    image: images.retro,
     gallery: [
-      { src: retro.url, caption: "Full storefront system: landing, collections and product pages" },
+      { src: images.retro, caption: "Full storefront system: landing, collections and product pages" },
     ],
     client: "Retail brand concept",
     projectType: "E-commerce storefront",
@@ -105,10 +107,10 @@ export const projects: Project[] = [
       "An end-to-end e-commerce concept for a gaming hardware brand. The engagement covered the storefront, product label and packaging design, apparel artwork, and a responsive mobile experience, all driven from one shared design system.",
     categories: ["E-Commerce", "Web Development", "UI/UX", "Branding"],
     technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL", "Figma"],
-    image: cyber.url,
+    image: images.cyber,
     gallery: [
-      { src: cyber.url, caption: "Storefront, collections and product pages" },
-      { src: cyberCase.url, caption: "Campaign presentation, mobile UI and creative assets" },
+      { src: images.cyber, caption: "Storefront, collections and product pages" },
+      { src: images.cyberCase, caption: "Campaign presentation, mobile UI and creative assets" },
     ],
     client: "Gaming hardware brand concept",
     projectType: "E-commerce + brand system",
@@ -149,8 +151,8 @@ export const projects: Project[] = [
       "A promotional design set communicating the CodeXPulse web development service line, structured around a clear value proposition, a scannable service grid and a single dominant call to action.",
     categories: ["Branding", "UI/UX"],
     technologies: ["Figma", "Adobe Illustrator", "Photoshop"],
-    image: webService.url,
-    gallery: [{ src: webService.url, caption: "Service promotion layout" }],
+    image: images.webService,
+    gallery: [{ src: images.webService, caption: "Service promotion layout" }],
     client: "CodeXPulse",
     projectType: "Digital services campaign",
     requirement:
@@ -186,8 +188,8 @@ export const projects: Project[] = [
       "A single presentation board covering logo design, brand guidelines, banners, posters, brochures, flyers, menus, product labels, illustration, apparel and book cover design — used to present the breadth of the CodeXPulse design practice.",
     categories: ["Branding", "UI/UX"],
     technologies: ["Figma", "Adobe Illustrator", "Photoshop", "InDesign"],
-    image: creative.url,
-    gallery: [{ src: creative.url, caption: "Design capability showcase board" }],
+    image: images.creative,
+    gallery: [{ src: images.creative, caption: "Design capability showcase board" }],
     client: "CodeXPulse",
     projectType: "Creative portfolio",
     requirement:
@@ -223,10 +225,10 @@ export const projects: Project[] = [
       "The brand identity system for CodeXPulse — a technology and digital solutions brand. It defines the pulse mark, wordmark lockups, the deep navy and blue colour system, typography scale and how the identity applies across web, social and documents.",
     categories: ["Branding", "UI/UX"],
     technologies: ["Figma", "SVG", "Design Systems"],
-    image: creative.url,
+    image: images.creative,
     gallery: [
-      { src: creative.url, caption: "Identity applied across print and digital collateral" },
-      { src: webService.url, caption: "Identity applied to a service campaign" },
+      { src: images.creative, caption: "Identity applied across print and digital collateral" },
+      { src: images.webService, caption: "Identity applied to a service campaign" },
     ],
     client: "CodeXPulse",
     projectType: "Brand identity system",

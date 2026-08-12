@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, MapPin, Phone, MessageCircle, Facebook } from "lucide-react";
+import { Mail, MapPin, Phone, MessageCircle, Facebook, Github } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { site } from "@/lib/site";
 import { Container } from "./Section";
@@ -26,7 +26,14 @@ export function Footer() {
     <footer className="border-t border-border bg-surface/40">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Logo />
+          <a
+            href={site.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="CodeXPulse on GitHub"
+          >
+            <Logo />
+          </a>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             {site.tagline}. A software and digital solutions studio building modern products for
             businesses worldwide.
@@ -40,6 +47,15 @@ export function Footer() {
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary-soft"
             >
               <MessageCircle className="h-4.5 w-4.5" />
+            </a>
+            <a
+              href={site.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="CodeXPulse on GitHub"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary-soft"
+            >
+              <Github className="h-4.5 w-4.5" />
             </a>
             <a
               href={site.facebook}

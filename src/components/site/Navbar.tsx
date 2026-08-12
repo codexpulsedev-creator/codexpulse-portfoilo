@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -38,9 +39,15 @@ export function Navbar() {
         aria-label="Main"
         className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8"
       >
-        <Link to="/" aria-label="CodeXPulse home" onClick={() => setOpen(false)}>
+        <a
+          href={site.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="CodeXPulse on GitHub"
+          onClick={() => setOpen(false)}
+        >
           <Logo />
-        </Link>
+        </a>
 
         <ul className="hidden items-center gap-1 lg:flex">
           {links.map((l) => (

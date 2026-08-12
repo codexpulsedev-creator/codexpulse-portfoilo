@@ -10,6 +10,7 @@ export const site = {
     encodeURIComponent("Hi CodeXPulse, I'd like to discuss a project."),
   // Replace with your CodeXPulse Facebook page URL.
   facebook: "https://www.facebook.com/",
+  github: "https://github.com/codexpulsedev-creator",
 } as const;
 
 export const emailjsConfig = {
