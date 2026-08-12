@@ -1,246 +1,109 @@
-# CodeXPulse Showcase
+# CodeXPulse — Official Company Website
 
-Build a modern, premium and professional IT company website for my software and digital services brand called "CodeXPulse".
+**Transforming Ideas Digitally**
 
-IMPORTANT:
-This is NOT a personal portfolio website. It must look like an official, trustworthy software development and digital solutions company website that can attract real clients and showcase completed projects.
+CodeXPulse is a modern software development and digital solutions brand
+based in Sri Lanka. This repository contains the official CodeXPulse
+company website, designed to present services, showcase projects,
+publish case studies, and generate client inquiries.
 
-BRAND
-Company Name: CodeXPulse
-Tagline: Transforming Ideas Digitally
-Primary contact email: codexpulse.dev@gmail.com
-Phone / WhatsApp: +94 757061004
-Location: Sri Lanka
+## Brand
 
-Use the CodeXPulse logo that I uploaded as the main brand logo. Do not redesign or replace the logo. Use it consistently in the navbar, footer, favicon area and relevant sections.
+- **Company:** CodeXPulse
+- **Tagline:** Transforming Ideas Digitally
+- **Location:** Sri Lanka
+- **Email:** codexpulse.dev@gmail.com
+- **Phone / WhatsApp:** +94 757061004
 
-VISUAL DIRECTION
-Create a premium technology-company aesthetic inspired by the uploaded CodeXPulse branding and project showcase images.
+The visual identity uses a premium technology aesthetic with a deep
+navy/near-black base, CodeXPulse blue accents, light typography, subtle
+gradients, clean cards, restrained glass effects, and lightweight
+animations.
 
-Design characteristics:
-- Dark premium background
-- Deep navy / near-black base
-- CodeXPulse blue as the primary accent
-- White/light text
-- Subtle gradients
-- Modern glassmorphism used carefully
-- Clean cards with soft borders
-- Subtle blue glow
-- Professional typography
-- High-end SaaS / software agency appearance
-- Modern but not overly futuristic
-- Minimal and clean layout
-- Strong visual hierarchy
-- Excellent spacing
-- Smooth micro-interactions
-- Subtle animations, not excessive
-- Fully responsive on desktop, tablet and mobile
+## Website
 
-Do NOT make it look like a generic AI-generated website.
-Do NOT use random stock images everywhere.
-Do NOT use excessive neon colors.
-Do NOT use purple as the dominant color.
-Keep the visual identity consistent with the CodeXPulse logo.
+### Main Pages
 
-WEBSITE STRUCTURE
+1.  Home
+2.  Services
+3.  Projects
+4.  Project Details / Case Studies
+5.  About Us
+6.  Portfolio
+7.  Contact
+8.  Blog / Insights structure for future expansion
 
-Create the following pages:
+### Services
 
-1. HOME
-2. SERVICES
-3. PROJECTS
-4. PROJECT DETAILS
-5. ABOUT US
-6. PORTFOLIO / CASE STUDIES
-7. CONTACT
-8. OPTIONAL BLOG / INSIGHTS section structure for future use
+- Web Development
+- E-Commerce Development
+- UI/UX Design
+- Software Development
+- Mobile App Development
+- QA & Software Testing
+- Branding & Graphic Design
+- Digital Solutions
 
-HOME PAGE
+Each service is intended to be reusable and easy to extend.
 
-Hero section:
-- CodeXPulse logo
-- Strong headline:
-  "Transforming Ideas Into Digital Solutions"
-- Supporting text explaining that CodeXPulse provides modern web development, software solutions, e-commerce systems and digital services.
-- Primary CTA: "Start a Project"
-- Secondary CTA: "View Our Work"
-- WhatsApp CTA
-- Add a subtle animated technology/network background inspired by the CodeXPulse logo, but keep it elegant and lightweight.
+## Projects
 
-Suggested hero text:
-"We design and build modern digital experiences, web applications and business solutions that help ideas grow into real products."
+The portfolio is data-driven so new projects can be added without
+changing the page layout.
 
-Add a small trust/value row:
-- Modern Technology
-- Client-Focused
-- Scalable Solutions
-- Reliable Support
+A project can contain:
 
-SERVICES SECTION
-
-Create professional service cards for:
-
-1. Web Development
-   - Business websites
-   - Custom web applications
-   - Landing pages
-   - Responsive websites
-   - Website maintenance
-
-2. E-Commerce Development
-   - Online stores
-   - Product management
-   - Shopping cart and checkout
-   - Payment integration
-   - Order management
-   - Admin dashboards
-
-3. UI/UX Design
-   - Website UI
-   - Mobile app UI
-   - Figma design
-   - Prototyping
-   - Design systems
-
-4. Software Development
-   - Custom software
-   - Business systems
-   - API development
-   - Database systems
-   - Admin dashboards
-
-5. Mobile App Development
-   - Android applications
-   - Cross-platform applications
-   - API integration
-   - App UI development
-
-6. QA & Software Testing
-   - Manual testing
-   - Functional testing
-   - Regression testing
-   - API testing
-   - Automated testing
-   - Bug reporting
-
-7. Branding & Graphic Design
-   - Logo design
-   - Posters
-   - Social media graphics
-   - Brand identity
-   - Marketing materials
-
-8. Digital Solutions
-   - Business automation
-   - Third-party API integration
-   - Custom dashboards
-   - Digital transformation solutions
-
-Each service should have:
-- Modern icon
-- Short description
-- "Learn More" link
-- Hover animation
-
-PROJECTS
-
-Create a professional dynamic project showcase.
-
-I want to be able to easily add future projects without changing the page structure.
-
-Create project data structure with:
-- Project title
+- Title
+- Slug
 - Short description
 - Full description
 - Category
 - Technologies
-- Project image
-- Gallery images
-- Client / project type
+- Hero image
+- Gallery
+- Client/project type
 - Features
 - Completion date
 - Live demo URL
 - GitHub URL
 - Status
 
-Project categories:
-- Web Development
-- E-Commerce
-- UI/UX
-- Mobile Apps
-- Software Systems
-- Branding
-- QA / Testing
+Initial showcase categories include:
 
-IMPORTANT PROJECT SHOWCASE:
+- Vintage Audio & Vinyl E-Commerce
+- Cyberpunk Gaming E-Commerce
+- CodeXPulse Web Development Service
+- CodeXPulse Creative Design Portfolio
+- CodeXPulse Brand Identity
 
-Use the uploaded project images as portfolio/case-study content where appropriate.
+> Concept/mockup work should be labelled accurately as concept or
+> selected work and should not be presented as completed client work
+> unless it actually was.
 
-Create example projects based on the uploaded designs, including:
+## Case Studies
 
-PROJECT 01:
-Vintage Audio & Vinyl E-Commerce
-Category: E-Commerce / Web Design
-Show the uploaded vintage audio/vinyl website designs.
+Project detail pages should include:
 
-PROJECT 02:
-Cyberpunk Gaming E-Commerce
-Category: E-Commerce / Web Design
-Show the uploaded cyberpunk gaming website designs.
+1.  Overview
+2.  Client requirement
+3.  Challenge
+4.  Solution
+5.  Key features
+6.  Technologies
+7.  Design/development process
+8.  Screenshots/gallery
+9.  Outcome
+10. CTA for similar projects
 
-PROJECT 03:
-CodeXPulse Web Development Service
-Category: Branding / Digital Services
-Use the uploaded CodeXPulse web service promotional design.
+## About CodeXPulse
 
-PROJECT 04:
-CodeXPulse Creative Design Portfolio
-Category: Graphic Design / Branding
-Use the uploaded creative design showcase.
+### Mission
 
-PROJECT 05:
-CodeXPulse Brand Identity
-Category: Branding
-Use the CodeXPulse logo and branding visuals.
+Build practical, modern and scalable digital products that turn ideas
+into useful real-world solutions.
 
-For every project create a "View Case Study" page.
+### Core Values
 
-PROJECT DETAILS PAGE
-
-Create a premium case-study layout containing:
-
-- Project hero image
-- Project title
-- Category
-- Overview
-- Client requirement
-- Challenge
-- Solution
-- Key features
-- Technologies used
-- Design process
-- Project screenshots/gallery
-- Results / outcome
-- CTA: "Have a similar project?"
-- Contact CodeXPulse
-
-ABOUT US
-
-Create a professional company introduction.
-
-Headline:
-"Building Digital Experiences That Move Businesses Forward"
-
-Explain that CodeXPulse is a technology and digital solutions brand focused on building practical, modern and scalable digital products.
-
-Include:
-- Mission
-- Vision
-- Core values
-- Development approach
-- Why choose CodeXPulse
-
-Core values:
 - Quality
 - Innovation
 - Transparency
@@ -248,56 +111,34 @@ Core values:
 - Continuous Learning
 - Reliability
 
-Add a "How We Work" section:
+### How We Work
 
-1. Discover
-2. Plan
-3. Design
-4. Develop
-5. Test
-6. Deploy
-7. Support
+**Discover → Plan → Design → Develop → Test → Deploy → Support**
 
-TECHNOLOGY SECTION
+## Technology Stack
 
-Create a clean technology stack section.
+The website can showcase technologies such as:
 
-Include technologies such as:
-- HTML
-- CSS
-- JavaScript
-- TypeScript
-- React
-- Next.js
-- Node.js
-- Java
-- Spring Boot
-- PHP
-- Laravel
-- Flutter
-- Kotlin
-- MongoDB
-- MySQL
-- PostgreSQL
-- Git
-- Docker
-- REST APIs
+HTML5, CSS3, JavaScript, TypeScript, React, Next.js, Node.js, Java,
+Spring Boot, PHP, Laravel, Flutter, Kotlin, MongoDB, MySQL, PostgreSQL,
+REST APIs, Git and Docker.
 
-Do not claim expertise in technologies unless they are actually used in projects. Make the section easy to edit later.
+Only list a technology as part of a project when it was actually used.
 
-CONTACT PAGE
+## Contact
 
-Create a premium contact section with:
+The contact form supports:
 
-Name
-Email
-Phone
-Company
-Project Type
-Budget
-Message
+- Name
+- Email
+- Phone
+- Company
+- Project type
+- Budget
+- Message
 
-Project Type dropdown:
+Project types:
+
 - Website
 - E-Commerce
 - Web Application
@@ -308,188 +149,245 @@ Project Type dropdown:
 - Branding / Design
 - Other
 
-Add:
-"Tell us about your project"
+Direct contact:
 
-CTA:
-"Send Project Request"
+- **Email:** codexpulse.dev@gmail.com
+- **WhatsApp:** +94 757061004
+- **Facebook:** CodeXPulse official Facebook page
 
-Also provide:
-Email: codexpulse.dev@gmail.com
-WhatsApp: +94 757061004
+## EmailJS
 
-Add a WhatsApp button that opens the WhatsApp conversation using the WhatsApp link I provided.
+Use environment variables instead of hardcoding credentials.
 
-Add a Facebook social link using the Facebook page link I provided.
+``` env
+VITE_EMAILJS_SERVICE_ID=your_service_id
+VITE_EMAILJS_TEMPLATE_ID=your_template_id
+VITE_EMAILJS_PUBLIC_KEY=your_public_key
+```
 
-EMAIL FORM
+The contact form should provide validation, loading state, success/error
+handling, duplicate-submit protection, and form reset after successful
+submission.
 
-The contact form should be prepared for EmailJS integration.
+**Security:** Never commit private API keys, secret tokens, or other
+sensitive credentials to the repository. Public frontend configuration
+should be used only where appropriate.
 
-Use environment variables, NOT hardcoded secrets:
+## Recommended Structure
 
-VITE_EMAILJS_SERVICE_ID
-VITE_EMAILJS_TEMPLATE_ID
-VITE_EMAILJS_PUBLIC_KEY
+``` text
+src/
+├── components/
+│   ├── layout/
+│   ├── navigation/
+│   ├── sections/
+│   ├── services/
+│   ├── projects/
+│   └── contact/
+├── data/
+│   ├── services.*
+│   ├── projects.*
+│   └── technologies.*
+├── pages/
+├── assets/
+│   ├── logo/
+│   └── projects/
+├── styles/
+└── utils/
+```
 
-Service ID:
-service_95x95wl
+Keep components reusable and keep project/service content in data
+structures rather than duplicating UI code.
 
-Template ID:
-template_5qq1k85
+## Adding Projects
 
-Public key:
-Use the public key I provided.
+Example project object:
 
-IMPORTANT SECURITY:
-Never expose or hardcode any private/secret EmailJS key in frontend source code.
-Keep private credentials server-side or in secure environment variables if actually required.
+``` js
+{
+  title: "Project Name",
+  slug: "project-name",
+  category: "E-Commerce",
+  shortDescription: "Short project description.",
+  description: "Full project description.",
+  technologies: ["React", "Node.js", "MongoDB"],
+  image: "/projects/project-name/hero.png",
+  gallery: [
+    "/projects/project-name/01.png",
+    "/projects/project-name/02.png"
+  ],
+  liveUrl: "",
+  githubUrl: "",
+  status: "Concept"
+}
+```
 
-After successful submission:
-- Show a professional success message
-- Clear the form
-- Handle validation errors
-- Show loading state
-- Prevent duplicate submissions
+## Adding Services
 
-FOOTER
+Example:
 
-Create a professional footer containing:
+``` js
+{
+  title: "Web Development",
+  description: "Modern responsive websites and web applications.",
+  icon: "code",
+  features: [
+    "Business Websites",
+    "Web Applications",
+    "Landing Pages",
+    "Website Maintenance"
+  ]
+}
+```
 
-CodeXPulse logo
-"Transforming Ideas Digitally"
+## UX & Accessibility
 
-Quick Links:
-Home
-Services
-Projects
-About
-Contact
-
-Services:
-Web Development
-E-Commerce
-Mobile Apps
-UI/UX
-QA & Testing
-Branding
-
-Contact:
-codexpulse.dev@gmail.com
-+94 757061004
-Sri Lanka
-
-Social:
-WhatsApp
-Facebook
-
-Add copyright:
-© 2026 CodeXPulse. All rights reserved.
-
-NAVIGATION
-
-Desktop navbar:
-Logo | Home | Services | Projects | About | Contact | Start a Project
-
-Mobile:
-Hamburger menu with smooth animation.
-
-Make navbar sticky with subtle background blur when scrolling.
-
-UX REQUIREMENTS
-
-- Fully responsive
-- Mobile-first
-- Excellent accessibility
+- Responsive desktop, tablet and mobile layouts
+- Mobile-first implementation
+- Semantic HTML
 - Keyboard navigation
-- Proper semantic HTML
 - Good color contrast
 - Clear CTA hierarchy
-- Loading states
-- Empty states
-- Error handling
 - Form validation
-- Smooth scrolling
-- SEO-friendly structure
-- Proper page titles and meta descriptions
-- Open Graph metadata
-- Fast loading
+- Loading/error/empty states
 - Optimized images
-- Lazy loading for portfolio images
-- Avoid unnecessary animations that hurt performance
+- Lazy loading where appropriate
+- Lightweight animations
 
-DESIGN DETAILS
+## SEO & Performance
 
-Use:
-- Large professional typography
-- Strong hero typography
-- Rounded but professional cards
-- Consistent border radius
-- Consistent spacing system
-- Blue accent glow
-- Subtle grid/network patterns inspired by the CodeXPulse logo
-- Modern project cards
-- Image hover effects
-- Scroll reveal animations
-- Professional CTA sections
+- Unique page titles
+- Meta descriptions
+- Open Graph metadata
+- Semantic heading hierarchy
+- Descriptive image alt text
+- SEO-friendly URLs
+- Optimized images
+- Lazy loading
+- Minimal unnecessary dependencies
+- Fast rendering
+- No excessive animation
 
-Do not use:
-- Random gradients everywhere
-- Excessive glassmorphism
-- Cartoon illustrations
-- Generic AI stock photos
-- Excessive text
-- Huge unnecessary animations
-- Purple-heavy color schemes
-- Fake testimonials
-- Fake client logos
-- Fake statistics
+## Local Development
 
-IMPORTANT:
-Make the website feel like a real software company that is ready to work with international clients.
+### Requirements
 
-Create reusable components and keep the code modular.
+- Node.js
+- npm
+- Git
 
-Make the project architecture easy to maintain.
+### Install
 
-The Projects section must be data-driven so I can add new projects later.
-
-The Services section must also be data-driven.
-
-Make all project images easy to replace/add.
-
-Before finishing, verify:
-- All navigation links work
-- All CTA buttons work
-- WhatsApp link works
-- Facebook link works
-- Contact form validation works
-- EmailJS integration is structured correctly
-- Mobile responsive layout works
-- No broken images
-- No console errors
-- No unnecessary dependencies
-- Build succeeds successfully
-
-Use the uploaded CodeXPulse logo and uploaded portfolio/project images as the visual reference and portfolio content.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/2c1ec742-a23b-45cd-846b-83a05affc7f1).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
+``` bash
+git clone <repository-url>
 cd <repository-name>
-npm i
+npm install
+```
+
+### Environment
+
+Create the appropriate `.env` / `.env.local` file and configure required
+variables.
+
+### Development
+
+``` bash
 npm run dev
 ```
+
+### Production Build
+
+``` bash
+npm run build
+```
+
+### Preview
+
+``` bash
+npm run preview
+```
+
+## Quality Checklist
+
+Before deployment:
+
+- [ ] Navigation links work
+- [ ] CTA buttons work
+- [ ] WhatsApp link works
+- [ ] Facebook link works
+- [ ] Email address works
+- [ ] Contact form validation works
+- [ ] EmailJS configuration works
+- [ ] Mobile menu works
+- [ ] Desktop/tablet/mobile layouts verified
+- [ ] No broken images
+- [ ] Images have useful alt text
+- [ ] No console errors
+- [ ] Production build succeeds
+- [ ] SEO metadata is configured
+- [ ] No private credentials are committed
+- [ ] Portfolio links are correct
+- [ ] Concept projects are labelled accurately
+
+## Deployment
+
+The site can be deployed to Vercel, Netlify, Cloudflare Pages, or
+another compatible hosting platform.
+
+Before deployment:
+
+1.  Configure production environment variables.
+2.  Run the production build.
+3.  Test the live contact form.
+4.  Verify social/contact links.
+5.  Check responsive layouts.
+6.  Verify all project assets.
+7.  Confirm no secrets are included in the repository.
+
+## Git Workflow
+
+Use focused commits:
+
+``` bash
+git add .
+git commit -m "feat: add projects section"
+git commit -m "feat: add contact form"
+git commit -m "style: improve mobile responsiveness"
+git commit -m "fix: resolve project image loading issue"
+git push origin main
+```
+
+Use feature branches and pull requests for larger changes.
+
+## Roadmap
+
+- [ ] CMS-managed portfolio
+- [ ] Blog / Insights
+- [ ] Client testimonials
+- [ ] Analytics
+- [ ] Newsletter subscription
+- [ ] Multi-language support
+- [ ] Advanced case studies
+- [ ] Client portal
+- [ ] Online service packages
+- [ ] Automated lead management
+
+## License
+
+This repository contains CodeXPulse branding, website content and
+portfolio materials. Do not reuse CodeXPulse branding, logos,
+proprietary content, or project assets for another commercial product
+without permission.
+
+------------------------------------------------------------------------
+
+## CodeXPulse
+
+**Transforming Ideas Digitally**
+
+Web Development • E-Commerce • Software Development • Mobile Apps •
+UI/UX • QA & Testing • Branding
+
+**Sri Lanka**  
+**Email:** codexpulse.dev@gmail.com  
+**Phone / WhatsApp:** +94 757061004
