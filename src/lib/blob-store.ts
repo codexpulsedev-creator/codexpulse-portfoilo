@@ -1,7 +1,6 @@
 "use server";
 
 import { createServerFn } from "@tanstack/react-start";
-import { put, list } from "@vercel/blob";
 
 export const getBlobProjects = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -12,6 +11,7 @@ export const getBlobProjects = createServerFn({ method: "GET" })
     }
 
     try {
+      const { list } = await import("@vercel/blob");
       const { blobs } = await list();
       const blob = blobs.find((b) => b.pathname === "custom-projects.json");
       if (!blob) {
@@ -41,6 +41,7 @@ export const saveBlobProjects = createServerFn({ method: "POST" })
     }
 
     try {
+      const { put } = await import("@vercel/blob");
       const blob = await put("custom-projects.json", JSON.stringify(projects), {
         access: "public",
         addRandomSuffix: false,
