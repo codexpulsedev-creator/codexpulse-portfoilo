@@ -1,5 +1,79 @@
 [
   {
+    "title": "Vintage Audio & Vinyl E-Commerce",
+    "shortDescription": "A warm, collector-focused storefront concept for vintage audio equipment, vinyl records and retro accessories.",
+    "fullDescription": "A complete e-commerce design and front-end system for a vintage audio and vinyl retailer. The work covered the full storefront journey: landing page, collection pages, product detail layouts, merchandise pages and the supporting brand system used across campaign material.",
+    "image": "/projects/retro.png",
+    "gallery": [
+      "/projects/retro.png"
+    ],
+    "categories": [
+      "E-Commerce",
+      "Web Development",
+      "UI/UX"
+    ],
+    "technologies": [
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Node.js",
+      "REST APIs",
+      "Figma"
+    ],
+    "client": "Retail brand concept",
+    "projectType": "E-commerce storefront",
+    "challenge": "Vintage warmth and modern e-commerce usability pull in opposite directions. Heavy texture and retro typography can easily hurt product legibility, conversion and mobile performance.",
+    "solution": "We built a restrained retro palette with cream, deep brown and burnt orange, paired it with a strict grid and modern spacing, and used photography rather than decoration to carry the vintage feeling. Collection blocks, product cards and checkout steps all reuse the same component set.",
+    "results": [
+      "One consistent component library across every storefront page",
+      "Clear product hierarchy on both desktop and mobile",
+      "Campaign layouts that reuse store components instead of one-off designs"
+    ],
+    "liveUrl": "",
+    "githubUrl": "",
+    "completionDate": "2026-03",
+    "featured": true,
+    "order": 0
+  },
+  {
+    "title": "Cyberpunk Gaming E-Commerce",
+    "shortDescription": "A high-contrast gaming gear store for headsets, custom keyboards and apparel, with a full campaign design system.",
+    "fullDescription": "An end-to-end e-commerce concept for a gaming hardware brand. The engagement covered the storefront, product label and packaging design, apparel artwork, and a responsive mobile experience, all driven from one shared design system.",
+    "image": "/projects/web.png",
+    "gallery": [
+      "/projects/web.png",
+      "/projects/webe.png"
+    ],
+    "categories": [
+      "E-Commerce",
+      "Web Development",
+      "UI/UX",
+      "Branding"
+    ],
+    "technologies": [
+      "Next.js",
+      "TypeScript",
+      "Tailwind CSS",
+      "Node.js",
+      "PostgreSQL",
+      "Figma"
+    ],
+    "client": "Gaming hardware brand concept",
+    "projectType": "E-commerce + brand system",
+    "challenge": "Neon-led gaming aesthetics usually destroy contrast and accessibility. The store also needed to hold very different product types under one visual language.",
+    "solution": "We anchored the design in a near-black base with two disciplined accents, used glow as emphasis rather than decoration, and standardised product cards so hardware, apparel and collector items share the same rhythm.",
+    "results": [
+      "One design system covering store, packaging and campaign assets",
+      "Accessible contrast maintained across a dark, high-energy interface",
+      "Reusable templates that shorten future campaign turnaround"
+    ],
+    "liveUrl": "",
+    "githubUrl": "",
+    "completionDate": "2026-05",
+    "featured": true,
+    "order": 1
+  },
+  {
     "title": "CodeXPulse Web Development Service",
     "shortDescription": "A professional web development service concept showcasing CodeXPulse’s ability to build modern, responsive and scalable digital solutions, presented through a structured service-focused layout and a clear conversion-driven call to action.",
     "fullDescription": "",
@@ -25,5 +99,69 @@
     "completionDate": "2026-08",
     "featured": false,
     "order": 0
+  },
+  {
+    "title": "CodeXPulse Creative Design Portfolio",
+    "shortDescription": "A consolidated showcase of branding, print, packaging and illustration work produced by CodeXPulse.",
+    "fullDescription": "A single presentation board covering logo design, brand guidelines, banners, posters, brochures, flyers, menus, product labels, illustration, apparel and book cover design — used to present the breadth of the CodeXPulse design practice.",
+    "image": "/projects/all.png",
+    "gallery": [
+      "/projects/all.png"
+    ],
+    "categories": [
+      "Branding",
+      "UI/UX"
+    ],
+    "technologies": [
+      "Figma",
+      "Adobe Illustrator",
+      "Photoshop",
+      "InDesign"
+    ],
+    "client": "CodeXPulse",
+    "projectType": "Creative portfolio",
+    "challenge": "Twelve very different deliverables had to sit together while each stayed individually readable.",
+    "solution": "A strict modular grid with labelled cells, a shared dark frame and consistent caption typography keeps every piece distinct and comparable.",
+    "results": [
+      "One asset that covers the full design offering",
+      "Faster client conversations about scope and capability"
+    ],
+    "liveUrl": "",
+    "githubUrl": "",
+    "completionDate": "2026-06",
+    "featured": true,
+    "order": 3
+  },
+  {
+    "title": "CodeXPulse Brand Identity",
+    "shortDescription": "The core CodeXPulse identity: mark, wordmark, colour system and the digital application rules behind this website.",
+    "fullDescription": "The brand identity system for CodeXPulse — a technology and digital solutions brand. It defines the pulse mark, wordmark lockups, the deep navy and blue colour system, typography scale and how the identity applies across web, social and documents.",
+    "image": "/projects/all.png",
+    "gallery": [
+      "/projects/all.png",
+      "/projects/web.jpeg"
+    ],
+    "categories": [
+      "Branding",
+      "UI/UX"
+    ],
+    "technologies": [
+      "Figma",
+      "SVG",
+      "Design Systems"
+    ],
+    "client": "CodeXPulse",
+    "projectType": "Brand identity system",
+    "challenge": "The mark needed to work at favicon scale and as a large hero element, in one colour and in full colour.",
+    "solution": "A geometric pulse mark paired with a clean display wordmark, a restrained navy and blue palette, and documented spacing and contrast rules applied directly to this site.",
+    "results": [
+      "One consistent identity across every CodeXPulse touchpoint",
+      "A documented system that scales to new collateral"
+    ],
+    "liveUrl": "",
+    "githubUrl": "",
+    "completionDate": "2026-07",
+    "featured": true,
+    "order": 4
   }
 ]
