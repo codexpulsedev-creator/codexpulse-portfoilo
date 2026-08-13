@@ -30,7 +30,6 @@ export type CustomProjectInput = {
 };
 
 const STORAGE_KEY = "codexpulse-custom-projects";
-const MANAGED_KEY = "codexpulse-admin-managed";
 const JSON_PATH = "/data/custom-projects.json";
 
 export function slugify(title: string) {
@@ -109,19 +108,6 @@ function toProject(input: CustomProjectInput, slug: string): Project {
   return project;
 }
 
-/** Check whether admin has taken over project management */
-function isAdminManaged(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(MANAGED_KEY) === "1";
-}
-
-/** Mark that admin has taken control of the project list */
-function setAdminManaged() {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(MANAGED_KEY, "1");
-  }
-}
-
 export function readLocalCustomProjects(): Project[] {
   if (typeof window === "undefined") return [];
   try {
@@ -137,7 +123,6 @@ export function readLocalCustomProjects(): Project[] {
 
 export function saveLocalCustomProjects(items: CustomProjectInput[]) {
   if (typeof window !== "undefined") {
-    setAdminManaged();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     window.dispatchEvent(new CustomEvent("codexpulse-projects-updated"));
   }
@@ -194,19 +179,21 @@ export async function fetchPublishedCustomProjects(): Promise<Project[]> {
   }
 }
 
-/**
- * Build the initial project list for the Admin panel.
- * If admin has previously saved (managed flag set), use localStorage as-is.
- * Otherwise, merge static + published + local.
- */
 export function getInitialAdminProjectInputs(): CustomProjectInput[] {
-  // If admin has previously managed the list, localStorage is the source of truth
-  if (isAdminManaged()) {
-    const local = getLocalCustomProjectInputs();
-    if (local.length > 0) return local;
+  // If localStorage exists, it means the admin has modified the projects list.
+  // Load from localStorage as-is so deleted projects stay deleted.
+  if (typeof window !== "undefined") {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw !== null) {
+      try {
+        const parsed = JSON.parse(raw) as CustomProjectInput[];
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        // Fallback to merge logic
+      }
+    }
   }
 
-  // First-time setup: merge static + published + local
   const map = new Map<string, CustomProjectInput>();
 
   // 1. Add all static projects (5 default projects)
@@ -229,18 +216,6 @@ export function getInitialAdminProjectInputs(): CustomProjectInput[] {
     }
   }
 
-  // 3. Add local custom projects from localStorage
-  const local = getLocalCustomProjectInputs();
-  if (local.length > 0) {
-    for (let i = 0; i < local.length; i++) {
-      const item = local[i];
-      if (item) {
-        const key = getSlug(item.title);
-        map.set(key, item);
-      }
-    }
-  }
-
   return [...map.values()];
 }
 
@@ -248,24 +223,20 @@ export function getCachedPublishedCustomProjects() {
   return fetchedJsonProjects ?? [];
 }
 
-/**
- * Merge projects for the public projects page.
- * If admin has managed the list, only use localStorage (no static injection).
- * Otherwise, merge static + published + local as before.
- */
 export function mergeProjects(published: Project[], local: Project[]) {
   const bySlug = new Map<string, Project>();
-
-  if (isAdminManaged() && local.length > 0) {
-    // Admin has taken control — localStorage is the single source of truth
-    for (const project of local) bySlug.set(getSlug(project.title), project);
-  } else {
-    // Default: merge all sources
-    for (const project of staticProjects) bySlug.set(getSlug(project.title), project);
+  
+  // If the admin has published custom projects OR has local modifications,
+  // we do NOT inject the default hardcoded static projects.
+  // This allows the admin to delete or modify any project permanently.
+  if (published.length > 0 || local.length > 0) {
     for (const project of published) bySlug.set(getSlug(project.title), project);
     for (const project of local) bySlug.set(getSlug(project.title), project);
+  } else {
+    // Default fallback: show the default static projects
+    for (const project of staticProjects) bySlug.set(getSlug(project.title), project);
   }
-
+  
   return [...bySlug.values()];
 }
 
