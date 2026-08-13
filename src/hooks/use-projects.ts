@@ -33,15 +33,23 @@ export function useProjects() {
 
     void load();
 
+    const onUpdate = () => {
+      void load();
+    };
+
     const onStorage = (event: StorageEvent) => {
       if (event.key === "codexpulse-custom-projects") {
         void load();
       }
     };
+
     window.addEventListener("storage", onStorage);
+    window.addEventListener("codexpulse-projects-updated", onUpdate);
+
     return () => {
       active = false;
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("codexpulse-projects-updated", onUpdate);
     };
   }, []);
 

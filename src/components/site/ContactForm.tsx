@@ -9,6 +9,7 @@ type Fields = {
   name: string;
   email: string;
   phone: string;
+  subject: string;
   company: string;
   projectType: string;
   budget: string;
@@ -19,6 +20,7 @@ const empty: Fields = {
   name: "",
   email: "",
   phone: "",
+  subject: "",
   company: "",
   projectType: "",
   budget: "",
@@ -40,7 +42,7 @@ const projectTypes = [
 const budgets = ["Under $500", "$500 – $1,500", "$1,500 – $5,000", "$5,000+", "Not sure yet"];
 
 const inputClass =
-  "w-full rounded-xl border border-input bg-surface-2/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:ring-1 focus:ring-ring focus:outline-none";
+  "w-full rounded-xl border border-input bg-surface-2/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:ring-1 focus:ring-ring focus:outline-none transition-colors";
 
 function validate(values: Fields) {
   const errors: Partial<Record<keyof Fields, string>> = {};
@@ -90,6 +92,7 @@ export function ContactForm() {
             from_name: values.name,
             reply_to: values.email,
             phone: values.phone,
+            subject: values.subject,
             company: values.company,
             project_type: values.projectType,
             budget: values.budget,
@@ -163,9 +166,24 @@ export function ContactForm() {
           </div>
         ))}
 
+        <div className="sm:col-span-2">
+          <label htmlFor="subject" className="text-sm font-medium">
+            Subject
+          </label>
+          <input
+            id="subject"
+            name="subject"
+            type="text"
+            value={values.subject}
+            onChange={(e) => set("subject")(e.target.value)}
+            placeholder="e.g. E-Commerce website for clothing brand"
+            className={`mt-2 ${inputClass}`}
+          />
+        </div>
+
         <div>
           <label htmlFor="projectType" className="text-sm font-medium">
-            Project type <span className="text-primary">*</span>
+            Service / Project type <span className="text-primary">*</span>
           </label>
           <select
             id="projectType"
@@ -175,7 +193,7 @@ export function ContactForm() {
             aria-invalid={Boolean(errors.projectType)}
             className={`mt-2 ${inputClass}`}
           >
-            <option value="">Select a project type</option>
+            <option value="">Select a service</option>
             {projectTypes.map((t) => (
               <option key={t} value={t}>
                 {t}

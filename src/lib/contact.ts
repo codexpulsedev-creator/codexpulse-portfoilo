@@ -5,6 +5,7 @@ export type ContactPayload = {
   email: string;
   phone: string;
   company: string;
+  subject: string;
   projectType: string;
   budget: string;
   message: string;
@@ -22,10 +23,13 @@ export async function sendContactViaFormSubmit(payload: ContactPayload) {
       email: payload.email,
       phone: payload.phone || "Not provided",
       company: payload.company || "Not provided",
+      subject: payload.subject || "General enquiry",
       project_type: payload.projectType,
       budget: payload.budget || "Not specified",
       message: payload.message,
-      _subject: `New project request from ${payload.name}`,
+      _subject: payload.subject
+        ? `${payload.subject} — from ${payload.name}`
+        : `New project request from ${payload.name}`,
       _template: "table",
       _captcha: "false",
     }),

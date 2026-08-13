@@ -6,12 +6,26 @@ import {
   type ProjectStatus,
 } from "@/data/projects";
 
+export type { Project };
+
 export type CustomProjectInput = {
   title: string;
   shortDescription: string;
+  fullDescription: string;
   image: string;
+  gallery: string[];
   categories: ProjectCategory[];
+  technologies: string[];
+  client: string;
+  projectType: string;
+  challenge: string;
+  solution: string;
+  results: string[];
   liveUrl?: string;
+  githubUrl?: string;
+  completionDate: string;
+  featured: boolean;
+  order: number;
   status?: ProjectStatus;
 };
 
@@ -26,33 +40,72 @@ export function slugify(title: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function toProject(input: CustomProjectInput, slug: string): Project {
+export function getSlug(title: string): string {
+  const match = staticProjects.find(
+    (p) => p.title.trim().toLowerCase() === title.trim().toLowerCase(),
+  );
+  if (match) return match.slug;
+  return slugify(title);
+}
+
+export function createEmptyInput(): CustomProjectInput {
   return {
+    title: "",
+    shortDescription: "",
+    fullDescription: "",
+    image: "",
+    gallery: [],
+    categories: ["Web Development"],
+    technologies: [],
+    client: "",
+    projectType: "",
+    challenge: "",
+    solution: "",
+    results: [],
+    liveUrl: "",
+    githubUrl: "",
+    completionDate: new Date().toISOString().slice(0, 7),
+    featured: false,
+    order: 0,
+  };
+}
+
+function toProject(input: CustomProjectInput, slug: string): Project {
+  const liveUrl = input.liveUrl?.trim();
+  const githubUrl = input.githubUrl?.trim();
+
+  const project: Project = {
     slug,
     title: input.title.trim(),
     shortDescription: input.shortDescription.trim(),
-    fullDescription: input.shortDescription.trim(),
+    fullDescription: input.fullDescription.trim() || input.shortDescription.trim(),
     categories: input.categories,
-    technologies: [],
+    technologies: input.technologies.length > 0 ? input.technologies : [],
     image: input.image.trim(),
-    gallery: [{ src: input.image.trim(), caption: input.title.trim() }],
-    client: "Client project",
-    projectType: input.categories[0] ?? "Web Development",
+    gallery: input.gallery.length > 0
+      ? input.gallery.map((src, i) => ({ src: src.trim(), caption: i === 0 ? input.title.trim() : `Image ${i + 1}` }))
+      : [{ src: input.image.trim(), caption: input.title.trim() }],
+    client: input.client.trim() || "Client project",
+    projectType: input.projectType.trim() || (input.categories[0] ?? "Web Development"),
     requirement: input.shortDescription.trim(),
-    challenge: "Deliver a polished digital experience on time and on budget.",
-    solution: input.shortDescription.trim(),
-    features: ["Responsive layout", "Modern UI", "Production-ready delivery"],
+    challenge: input.challenge.trim() || "",
+    solution: input.solution.trim() || "",
+    features: [],
     process: [
       { step: "Discover", detail: "Requirements and scope alignment." },
       { step: "Design", detail: "UI direction and component planning." },
       { step: "Build", detail: "Implementation and QA." },
       { step: "Launch", detail: "Deployment and handover." },
     ],
-    results: ["Delivered to client specification", "Ready for ongoing iteration"],
-    completionDate: new Date().toISOString().slice(0, 7),
-    liveUrl: input.liveUrl?.trim() || undefined,
+    results: input.results.length > 0 ? input.results : [],
+    completionDate: input.completionDate || new Date().toISOString().slice(0, 7),
     status: input.status ?? "Completed",
   };
+
+  if (liveUrl) project.liveUrl = liveUrl;
+  if (githubUrl) project.githubUrl = githubUrl;
+
+  return project;
 }
 
 export function readLocalCustomProjects(): Project[] {
@@ -62,14 +115,17 @@ export function readLocalCustomProjects(): Project[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as CustomProjectInput[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.map((item) => toProject(item, slugify(item.title)));
+    return parsed.map((item) => toProject(item, getSlug(item.title)));
   } catch {
     return [];
   }
 }
 
 export function saveLocalCustomProjects(items: CustomProjectInput[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    window.dispatchEvent(new CustomEvent("codexpulse-projects-updated"));
+  }
 }
 
 export function getLocalCustomProjectInputs(): CustomProjectInput[] {
@@ -84,7 +140,30 @@ export function getLocalCustomProjectInputs(): CustomProjectInput[] {
   }
 }
 
+export function projectToInput(p: Project, index: number): CustomProjectInput {
+  return {
+    title: p.title,
+    shortDescription: p.shortDescription,
+    fullDescription: p.fullDescription || p.shortDescription,
+    image: p.image,
+    gallery: p.gallery && p.gallery.length > 0 ? p.gallery.map((g) => g.src) : [p.image],
+    categories: p.categories,
+    technologies: p.technologies || [],
+    client: p.client || "",
+    projectType: p.projectType || "",
+    challenge: p.challenge || "",
+    solution: p.solution || "",
+    results: p.results || [],
+    liveUrl: p.liveUrl || "",
+    githubUrl: p.githubUrl || "",
+    completionDate: p.completionDate || "",
+    featured: true,
+    order: index,
+  };
+}
+
 let fetchedJsonProjects: Project[] | null = null;
+let rawPublishedInputs: CustomProjectInput[] | null = null;
 
 export async function fetchPublishedCustomProjects(): Promise<Project[]> {
   try {
@@ -92,11 +171,50 @@ export async function fetchPublishedCustomProjects(): Promise<Project[]> {
     if (!res.ok) return [];
     const parsed = (await res.json()) as CustomProjectInput[];
     if (!Array.isArray(parsed)) return [];
-    fetchedJsonProjects = parsed.map((item) => toProject(item, slugify(item.title)));
+    rawPublishedInputs = parsed;
+    fetchedJsonProjects = parsed.map((item) => toProject(item, getSlug(item.title)));
     return fetchedJsonProjects;
   } catch {
     return [];
   }
+}
+
+export function getInitialAdminProjectInputs(): CustomProjectInput[] {
+  const map = new Map<string, CustomProjectInput>();
+
+  // 1. Add all static projects (5 default projects)
+  for (let i = 0; i < staticProjects.length; i++) {
+    const sp = staticProjects[i];
+    if (sp) {
+      const key = getSlug(sp.title);
+      map.set(key, projectToInput(sp, i));
+    }
+  }
+
+  // 2. Add published custom projects
+  if (rawPublishedInputs && rawPublishedInputs.length > 0) {
+    for (let i = 0; i < rawPublishedInputs.length; i++) {
+      const item = rawPublishedInputs[i];
+      if (item) {
+        const key = getSlug(item.title);
+        map.set(key, item);
+      }
+    }
+  }
+
+  // 3. Add local custom projects from localStorage
+  const local = getLocalCustomProjectInputs();
+  if (local.length > 0) {
+    for (let i = 0; i < local.length; i++) {
+      const item = local[i];
+      if (item) {
+        const key = getSlug(item.title);
+        map.set(key, item);
+      }
+    }
+  }
+
+  return [...map.values()];
 }
 
 export function getCachedPublishedCustomProjects() {
@@ -105,9 +223,9 @@ export function getCachedPublishedCustomProjects() {
 
 export function mergeProjects(published: Project[], local: Project[]) {
   const bySlug = new Map<string, Project>();
-  for (const project of staticProjects) bySlug.set(project.slug, project);
-  for (const project of published) bySlug.set(project.slug, project);
-  for (const project of local) bySlug.set(project.slug, project);
+  for (const project of staticProjects) bySlug.set(getSlug(project.title), project);
+  for (const project of published) bySlug.set(getSlug(project.title), project);
+  for (const project of local) bySlug.set(getSlug(project.title), project);
   return [...bySlug.values()];
 }
 

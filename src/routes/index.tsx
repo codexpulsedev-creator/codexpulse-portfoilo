@@ -96,7 +96,7 @@ function Home() {
               aria-label="CodeXPulse home"
               className="inline-flex rounded-2xl border border-border bg-surface/60 px-4 py-2.5 backdrop-blur-sm transition-colors hover:border-primary/50"
             >
-              <LogoMark className="h-14 animate-float motion-reduce:animate-none sm:h-16" />
+              <LogoMark className="h-16 animate-float motion-reduce:animate-none sm:h-20" />
             </Link>
 
             <h1 className="mt-8 text-4xl leading-[1.05] font-semibold text-balance sm:text-6xl">
