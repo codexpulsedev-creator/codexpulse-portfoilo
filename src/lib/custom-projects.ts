@@ -194,29 +194,13 @@ export function getInitialAdminProjectInputs(): CustomProjectInput[] {
     }
   }
 
-  const map = new Map<string, CustomProjectInput>();
-
-  // 1. Add all static projects (5 default projects)
-  for (let i = 0; i < staticProjects.length; i++) {
-    const sp = staticProjects[i];
-    if (sp) {
-      const key = getSlug(sp.title);
-      map.set(key, projectToInput(sp, i));
-    }
-  }
-
-  // 2. Add published custom projects
+  // If there are published projects, they are the source of truth!
   if (rawPublishedInputs && rawPublishedInputs.length > 0) {
-    for (let i = 0; i < rawPublishedInputs.length; i++) {
-      const item = rawPublishedInputs[i];
-      if (item) {
-        const key = getSlug(item.title);
-        map.set(key, item);
-      }
-    }
+    return rawPublishedInputs;
   }
 
-  return [...map.values()];
+  // Otherwise, default fallback to static projects
+  return staticProjects.map((sp, i) => projectToInput(sp, i));
 }
 
 export function getCachedPublishedCustomProjects() {
@@ -226,12 +210,12 @@ export function getCachedPublishedCustomProjects() {
 export function mergeProjects(published: Project[], local: Project[]) {
   const bySlug = new Map<string, Project>();
   
-  // If the admin has published custom projects OR has local modifications,
-  // we do NOT inject the default hardcoded static projects.
-  // This allows the admin to delete or modify any project permanently.
-  if (published.length > 0 || local.length > 0) {
-    for (const project of published) bySlug.set(getSlug(project.title), project);
+  if (local.length > 0) {
+    // If the admin has local modifications, use them as-is (source of truth)
     for (const project of local) bySlug.set(getSlug(project.title), project);
+  } else if (published.length > 0) {
+    // Otherwise, if there are published projects, use them as-is (source of truth)
+    for (const project of published) bySlug.set(getSlug(project.title), project);
   } else {
     // Default fallback: show the default static projects
     for (const project of staticProjects) bySlug.set(getSlug(project.title), project);
