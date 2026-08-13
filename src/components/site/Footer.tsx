@@ -26,14 +26,9 @@ export function Footer() {
     <footer className="border-t border-border bg-surface/40">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <a
-            href={site.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="CodeXPulse on GitHub"
-          >
+          <Link to="/" aria-label="CodeXPulse home">
             <Logo />
-          </a>
+          </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             {site.tagline}. A software and digital solutions studio building modern products for
             businesses worldwide.

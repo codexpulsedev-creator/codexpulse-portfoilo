@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { sendContactViaFormSubmit } from "@/lib/contact";
 import { emailjsConfig, isEmailjsConfigured } from "@/lib/site";
 
 type Fields = {
@@ -78,30 +79,27 @@ export function ContactForm() {
       return;
     }
 
-    if (!isEmailjsConfigured()) {
-      toast.error("Email sending isn't configured yet.", {
-        description: "Add the EmailJS environment variables, or email us directly.",
-      });
-      return;
-    }
-
     setSending(true);
     try {
-      const emailjs = (await import("@emailjs/browser")).default;
-      await emailjs.send(
-        emailjsConfig.serviceId!,
-        emailjsConfig.templateId!,
-        {
-          from_name: values.name,
-          reply_to: values.email,
-          phone: values.phone,
-          company: values.company,
-          project_type: values.projectType,
-          budget: values.budget,
-          message: values.message,
-        },
-        { publicKey: emailjsConfig.publicKey! },
-      );
+      if (isEmailjsConfigured()) {
+        const emailjs = (await import("@emailjs/browser")).default;
+        await emailjs.send(
+          emailjsConfig.serviceId!,
+          emailjsConfig.templateId!,
+          {
+            from_name: values.name,
+            reply_to: values.email,
+            phone: values.phone,
+            company: values.company,
+            project_type: values.projectType,
+            budget: values.budget,
+            message: values.message,
+          },
+          { publicKey: emailjsConfig.publicKey! },
+        );
+      } else {
+        await sendContactViaFormSubmit(values);
+      }
       setValues(empty);
       setSent(true);
       toast.success("Project request sent", {

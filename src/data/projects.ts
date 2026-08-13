@@ -151,8 +151,8 @@ export const projects: Project[] = [
       "A promotional design set communicating the CodeXPulse web development service line, structured around a clear value proposition, a scannable service grid and a single dominant call to action.",
     categories: ["Branding", "UI/UX"],
     technologies: ["Figma", "Adobe Illustrator", "Photoshop"],
-    image: images.webService,
-    gallery: [{ src: images.webService, caption: "Service promotion layout" }],
+    image: "/codexpulse-logo.png",
+    gallery: [{ src: "/codexpulse-logo.png", caption: "Service promotion layout" }],
     client: "CodeXPulse",
     projectType: "Digital services campaign",
     requirement:

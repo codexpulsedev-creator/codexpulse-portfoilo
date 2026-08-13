@@ -7,7 +7,7 @@ import { ProjectCard } from "@/components/site/ProjectCard";
 import { CtaSection } from "@/components/site/CtaSection";
 import { Button } from "@/components/ui/button";
 import { services } from "@/data/services";
-import { projects } from "@/data/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { technologies } from "@/data/technologies";
 import { site } from "@/lib/site";
 
@@ -81,6 +81,9 @@ function NetworkBackdrop() {
 }
 
 function Home() {
+  const projects = useProjects();
+  const featured = projects.slice(0, 3);
+
   return (
     <>
       <section className="hero-glow relative overflow-hidden border-b border-border">
@@ -88,15 +91,13 @@ function Home() {
         <NetworkBackdrop />
         <Container className="relative py-24 sm:py-32">
           <Reveal className="max-w-3xl">
-            <a
-              href={site.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="CodeXPulse on GitHub"
+            <Link
+              to="/"
+              aria-label="CodeXPulse home"
               className="inline-flex rounded-2xl border border-border bg-surface/60 px-4 py-2.5 backdrop-blur-sm transition-colors hover:border-primary/50"
             >
-              <LogoMark className="h-10 animate-float motion-reduce:animate-none sm:h-11" />
-            </a>
+              <LogoMark className="h-14 animate-float motion-reduce:animate-none sm:h-16" />
+            </Link>
 
             <h1 className="mt-8 text-4xl leading-[1.05] font-semibold text-balance sm:text-6xl">
               Transforming Ideas Into{" "}
@@ -184,7 +185,7 @@ function Home() {
           </Button>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.slice(0, 3).map((p, i) => (
+          {featured.map((p, i) => (
             <Reveal key={p.slug} delay={(i % 3) * 70}>
               <ProjectCard project={p} />
             </Reveal>

@@ -1,24 +1,25 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ExternalLink, Github, Check } from "lucide-react";
 import { getProject } from "@/data/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Container, Section, Eyebrow } from "@/components/site/Section";
 import { Reveal } from "@/components/site/Reveal";
 import { CtaSection } from "@/components/site/CtaSection";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/projects/$slug")({
-  loader: ({ params }) => {
-    const project = getProject(params.slug);
-    if (!project) throw notFound();
-    return { project };
-  },
+  loader: ({ params }) => ({
+    slug: params.slug,
+    staticProject: getProject(params.slug) ?? null,
+  }),
   head: ({ loaderData, params }) => {
-    if (!loaderData) {
+    const project = loaderData?.staticProject;
+    if (!project) {
       return {
-        meta: [{ title: "Project not found | CodeXPulse" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Project | CodeXPulse" }],
+        links: [{ rel: "canonical", href: `/projects/${params.slug}` }],
       };
     }
-    const { project } = loaderData;
     return {
       meta: [
         { title: `${project.title} — Case Study | CodeXPulse` },
@@ -59,7 +60,13 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function ProjectDetail() {
-  const { project } = Route.useLoaderData();
+  const { slug, staticProject } = Route.useLoaderData();
+  const allProjects = useProjects();
+  const project = staticProject ?? allProjects.find((p) => p.slug === slug);
+
+  if (!project) {
+    return <ProjectNotFound />;
+  }
 
   return (
     <>

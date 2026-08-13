@@ -5,7 +5,7 @@ export function LogoMark({ className }: { className?: string }) {
     <img
       src="/codexpulse-logo.png"
       alt="CodeXPulse logo"
-      className={cn("h-9 w-auto object-contain", className)}
+      className={cn("h-12 w-auto object-contain sm:h-14", className)}
     />
   );
 }
@@ -19,7 +19,7 @@ export function Logo({
 }) {
   return (
     <span className={cn("inline-flex items-center", className)}>
-      <LogoMark className={showWordmark ? "h-9" : "h-10 sm:h-11"} />
+      <LogoMark className={showWordmark ? "h-12 sm:h-14" : "h-14 sm:h-16"} />
       {showWordmark && (
         <span className="sr-only font-display text-lg font-semibold tracking-tight">
           Code<span className="text-primary">X</span>Pulse

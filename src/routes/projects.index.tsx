@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { projects, projectCategories, type ProjectCategory } from "@/data/projects";
+import { projectCategories, type ProjectCategory } from "@/data/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Container, Section, Eyebrow } from "@/components/site/Section";
 import { ProjectCard } from "@/components/site/ProjectCard";
 import { Reveal } from "@/components/site/Reveal";
@@ -32,13 +33,14 @@ type Filter = ProjectCategory | "All";
 
 function ProjectsPage() {
   const [filter, setFilter] = useState<Filter>("All");
+  const projects = useProjects();
 
   const available = useMemo(
     () =>
       (["All", ...projectCategories] as Filter[]).filter(
         (c) => c === "All" || projects.some((p) => p.categories.includes(c as ProjectCategory)),
       ),
-    [],
+    [projects],
   );
 
   const visible = useMemo(
@@ -46,7 +48,7 @@ function ProjectsPage() {
       filter === "All"
         ? projects
         : projects.filter((p) => p.categories.includes(filter as ProjectCategory)),
-    [filter],
+    [filter, projects],
   );
 
   return (
