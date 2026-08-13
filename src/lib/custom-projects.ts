@@ -5,6 +5,7 @@ import {
   type ProjectCategory,
   type ProjectStatus,
 } from "@/data/projects";
+import { getBlobProjects } from "@/lib/blob-store";
 
 export type { Project };
 
@@ -166,6 +167,19 @@ let fetchedJsonProjects: Project[] | null = null;
 let rawPublishedInputs: CustomProjectInput[] | null = null;
 
 export async function fetchPublishedCustomProjects(): Promise<Project[]> {
+  try {
+    // 1. Try fetching from Vercel Blob first (persistent dynamic store)
+    const blobData = await getBlobProjects();
+    if (Array.isArray(blobData) && blobData.length > 0) {
+      rawPublishedInputs = blobData;
+      fetchedJsonProjects = blobData.map((item) => toProject(item, getSlug(item.title)));
+      return fetchedJsonProjects;
+    }
+  } catch (error) {
+    console.error("Vercel Blob fetch failed, falling back to static JSON:", error);
+  }
+
+  // 2. Fall back to local static JSON if Vercel Blob is not set up / empty
   try {
     const res = await fetch(`${JSON_PATH}?v=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) return [];

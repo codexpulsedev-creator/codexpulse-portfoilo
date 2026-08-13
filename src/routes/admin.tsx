@@ -31,6 +31,7 @@ import {
   type CustomProjectInput,
 } from "@/lib/custom-projects";
 import type { ProjectCategory } from "@/data/projects";
+import { saveBlobProjects } from "@/lib/blob-store";
 
 const ADMIN_SESSION_KEY = "codexpulse-admin-auth";
 const adminPassword =
@@ -80,6 +81,24 @@ function AdminPage() {
   const [resultInput, setResultInput] = useState("");
   const [galleryInput, setGalleryInput] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  async function publishToWebsite() {
+    setIsPublishing(true);
+    const toastId = toast.loading("Publishing projects to the website...");
+    try {
+      const res = await saveBlobProjects(projects);
+      if (res.success) {
+        toast.success("Successfully published to all browsers!", { id: toastId });
+      } else {
+        toast.error(`Publish failed: ${res.error}`, { id: toastId });
+      }
+    } catch (err) {
+      toast.error(`Failed to publish: ${String(err)}`, { id: toastId });
+    } finally {
+      setIsPublishing(false);
+    }
+  }
 
   useEffect(() => {
     setAuthed(sessionStorage.getItem(ADMIN_SESSION_KEY) === "1");
@@ -829,12 +848,21 @@ function AdminPage() {
                     <RotateCcw className="h-4 w-4" /> Sync All ({projects.length})
                   </Button>
                   <Button
+                    variant="hero"
+                    size="sm"
+                    onClick={publishToWebsite}
+                    disabled={isPublishing || !projects.length}
+                  >
+                    <Upload className="h-4 w-4" /> Publish to Website
+                  </Button>
+                  <Button
                     variant="outlineSoft"
                     size="sm"
                     onClick={downloadJson}
                     disabled={!projects.length}
+                    title="Download JSON backup"
                   >
-                    <Download className="h-4 w-4" /> Publish JSON
+                    <Download className="h-4 w-4" /> Backup JSON
                   </Button>
                 </div>
               </div>
@@ -931,15 +959,12 @@ function AdminPage() {
             <div className="glass-card rounded-2xl p-7 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">How publishing works</p>
               <ol className="mt-3 list-decimal space-y-2 pl-5">
-                <li>Add projects using the form.</li>
+                <li>Add, edit or delete projects using the form.</li>
                 <li>
-                  Click <strong>Publish JSON</strong> to download the file.
+                  Click <strong>Publish to Website</strong> to save updates directly to Vercel Blob cloud storage.
                 </li>
-                <li>
-                  Replace <code>public/data/custom-projects.json</code> with the downloaded file in
-                  Lovable or your repo.
-                </li>
-                <li>Redeploy — customers will see the new projects on the site.</li>
+                <li>Updates are instantly visible to all visitors on every browser!</li>
+                <li>You can also click <strong>Backup JSON</strong> to save a local backup copy on your computer.</li>
               </ol>
             </div>
           </div>
