@@ -5,11 +5,8 @@ export const site = {
   phone: "+94 757061004",
   phoneRaw: "94757061004",
   location: "Sri Lanka",
-  whatsapp:
-    "https://wa.me/94757061004?text=" +
-    encodeURIComponent("Hi CodeXPulse, I'd like to discuss a project."),
-  // Replace with your CodeXPulse Facebook page URL.
-  facebook: "https://www.facebook.com/",
+  whatsapp: "https://wa.me/message/V6EPCMU23CMTB1",
+  facebook: "https://www.facebook.com/share/1E9gFnGsf9/?mibextid=wwXIfr",
   github: "https://github.com/codexpulsedev-creator",
 } as const;
 
