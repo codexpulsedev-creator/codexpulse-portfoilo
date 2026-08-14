@@ -44,6 +44,126 @@ export const projectCategories: ProjectCategory[] = [
 
 export const projects: Project[] = [
   {
+    slug: "fanzzy-luxury-fashion-ecommerce",
+    title: "Fanzzy Shop — Luxury Fashion & Apparel",
+    shortDescription:
+      "A high-end luxury fashion and apparel storefront featuring curated new season edits, interactive size selectors, Instagram lookbooks, and streamlined checkout.",
+    fullDescription:
+      "A complete digital flagship experience created for modern luxury apparel. Features modular shop-by-category discovery (Women, Men, Dresses, Bags, Shoes, Accessories), new arrivals with discount badges, interactive product views with color & size pickers, social lookbook integration, and client reviews.",
+    categories: ["E-Commerce", "Web Development", "UI/UX"],
+    technologies: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Figma", "Stripe API"],
+    image: "/projects/fanzzy-luxury-fashion.jpg",
+    gallery: [
+      { src: "/projects/fanzzy-luxury-fashion.jpg", caption: "Fanzzy Shop complete e-commerce storefront and lookbook system" },
+    ],
+    client: "Fanzzy Fashion Label",
+    projectType: "Luxury Fashion Storefront",
+    requirement:
+      "Deliver an editorial-quality online boutique that conveys high-fashion elegance while maintaining frictionless mobile shopping and rapid checkout conversions.",
+    challenge:
+      "Creating an airy, minimalist luxury aesthetic with rich typography that remains fast and fully accessible across mobile devices.",
+    solution:
+      "Implemented a sophisticated neutral palette with warm beige accents, high-res lookbook grids, quick-view slideouts, and sticky add-to-bag action bars.",
+    features: [
+      "Editorial shop-by-category grid (Women, Men, Dresses, Shoes, Bags, Accessories)",
+      "New arrivals carousel with quick-add functionality",
+      "Signature product detail view with multi-size & swatch pickers",
+      "Instagram style gallery integration with customer reviews",
+      "Free shipping & easy returns assurance badges",
+    ],
+    process: [
+      { step: "Brand Strategy", detail: "Editorial layout benchmarks and luxury consumer behavior mapping." },
+      { step: "Design System", detail: "Serif headline typography scale, palette, and mobile drawer components." },
+      { step: "Development", detail: "Fluid responsive frontend with Next.js and Tailwind CSS." },
+    ],
+    results: [
+      "Premium editorial brand experience elevating perception",
+      "Seamless multi-item bag management on mobile viewports",
+    ],
+    completionDate: "2026-07",
+    status: "Completed",
+  },
+  {
+    slug: "aura-fine-dining-restaurant",
+    title: "Aura — Fine Dining & Restaurant Experience",
+    shortDescription:
+      "An immersive culinary and hospitality website built for a contemporary fine dining restaurant with interactive menu exploration, chef stories, and online table reservations.",
+    fullDescription:
+      "A luxurious digital destination built for Aura Restaurant under the ethos 'A Taste Worth Remembering'. Highlights artisanal culinary craftsmanship, categorized menu exploration (Starters, Main Courses, Seafood, Desserts, Drinks), ambient interior photography, guest review showcases, and an integrated reservation booking engine.",
+    categories: ["Web Development", "UI/UX", "Branding"],
+    technologies: ["React", "TypeScript", "Tailwind CSS", "Figma", "Booking System"],
+    image: "/projects/aura-fine-dining.jpg",
+    gallery: [
+      { src: "/projects/aura-fine-dining.jpg", caption: "Aura restaurant landing page, menu cards, and table booking system" },
+    ],
+    client: "Aura Contemporary Dining",
+    projectType: "Hospitality & Restaurant Platform",
+    requirement:
+      "Create an alluring hospitality portal that captures the warmth, elegance, and gastronomic artistry of the restaurant while simplifying table bookings for guests.",
+    challenge:
+      "Balancing rich dark-mode atmosphere with easy-to-read menu typography and immediate table booking conversion triggers.",
+    solution:
+      "Designed a deep obsidian and warm cream aesthetic, paired with categorized dish tabs, chef craftsmanship spotlights, and a real-time reservation module.",
+    features: [
+      "Categorized dining menu (Starters, Main Courses, Seafood, Desserts, Drinks)",
+      "Chef profile and culinary philosophy story section",
+      "Interactive multi-guest table reservation booking form",
+      "Visual ambient dining room & dish gallery",
+      "Verified guest reviews and opening hours footer integration",
+    ],
+    process: [
+      { step: "Art Direction", detail: "Dark culinary photography styling and elegant serif typography." },
+      { step: "UI Design", detail: "Component hierarchy for dish cards, pricing, and reservation flows." },
+      { step: "Frontend Build", detail: "Smooth interactive tab switching and responsive reservation modal." },
+    ],
+    results: [
+      "Substantial increase in direct online table reservations",
+      "Atmospheric brand immersion reflecting physical dining experience",
+    ],
+    completionDate: "2026-06",
+    status: "Completed",
+  },
+  {
+    slug: "beauty-style-salon-cosmetics",
+    title: "Beauty & Style — Salon & Luxury Cosmetics",
+    shortDescription:
+      "An authentic beauty boutique and salon booking platform offering expert hairstyling, premium skincare vaults, makeup collections, and appointment scheduling.",
+    fullDescription:
+      "A refined digital salon and cosmetics hub celebrating 'Elevated Artistry. Visible Results.' Combines hair styling services, signature haircut menus, hair color excellence guides, appointment booking calendars, skincare vaults, and luxury beauty product e-commerce.",
+    categories: ["E-Commerce", "UI/UX", "Branding"],
+    technologies: ["React", "TypeScript", "Tailwind CSS", "Figma", "Booking System"],
+    image: "/projects/beauty-style-salon.jpg",
+    gallery: [
+      { src: "/projects/beauty-style-salon.jpg", caption: "Beauty & Style salon services, product collections, and booking UI" },
+    ],
+    client: "Refined Beauty Studio",
+    projectType: "Salon & Cosmetics E-Commerce",
+    requirement:
+      "Unify in-salon service appointments and retail beauty cosmetics into one harmonious, high-trust digital storefront.",
+    challenge:
+      "Displaying both service booking schedules and physical cosmetics catalogs without overwhelming visitors.",
+    solution:
+      "Created a muted blush and emerald palette with clear dual pathways: one-click appointment scheduling and category-driven skincare/makeup shopping.",
+    features: [
+      "Signature haircuts & color excellence service menus",
+      "Interactive appointment calendar booking drawer",
+      "Curated skincare vault and luxury makeup showcase",
+      "Results guaranteed wax-seal quality badge",
+      "Styling tools and haircare merchandise e-commerce",
+    ],
+    process: [
+      { step: "Concept", detail: "Dual service-and-product customer journey mapping." },
+      { step: "Design", detail: "Soft luxury color harmonies and clean appointment cards." },
+      { step: "Build", detail: "Fast static catalogue with responsive service grids." },
+    ],
+    results: [
+      "Seamless blending of salon bookings with cosmetic retail",
+      "High visual appeal and immediate service transparency",
+    ],
+    completionDate: "2026-05",
+    status: "Completed",
+  },
+  {
     slug: "merlion-marketplace-singapore",
     title: "Merlion Marketplace — Singapore E-Commerce",
     shortDescription:
