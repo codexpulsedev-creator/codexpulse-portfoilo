@@ -95,7 +95,7 @@ function FallbackImage({
 function ProjectDetail() {
   const { slug, staticProject } = Route.useLoaderData();
   const allProjects = useProjects();
-  const project = staticProject ?? allProjects.find((p) => p.slug === slug);
+  const project = allProjects.find((p) => p.slug === slug) ?? staticProject;
 
   if (!project) {
     return <ProjectNotFound />;

@@ -1,62 +1,116 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  ArrowDown,
-  ArrowUp,
+  Check,
   ChevronDown,
   ChevronUp,
-  Download,
+  Database,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Github,
   ImageOff,
   Lock,
+  LogOut,
   Pencil,
   Plus,
-  RotateCcw,
+  RefreshCw,
+  Search,
+  Sparkles,
   Star,
   Trash2,
   Upload,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Container, Section, Eyebrow } from "@/components/site/Section";
 import { Button } from "@/components/ui/button";
 import {
-  createEmptyInput,
-  exportCustomProjectsJson,
-  fetchPublishedCustomProjects,
-  getInitialAdminProjectInputs,
-  getSlug,
   projectCategories,
-  saveLocalCustomProjects,
+  type Project,
+  type ProjectCategory,
+  type ProjectStatus,
+} from "@/data/projects";
+import {
+  createProject,
+  deleteProject,
+  getProjects,
+  seedInitialProjectsIfEmpty,
   slugify,
-  type CustomProjectInput,
-} from "@/lib/custom-projects";
-import type { ProjectCategory } from "@/data/projects";
-import { saveBlobProjects } from "@/lib/blob-store";
-
-const ADMIN_SESSION_KEY = "codexpulse-admin-auth";
-const adminPassword =
-  (import.meta.env["VITE_ADMIN_PASSWORD"] as string | undefined) ?? "codexpulse-admin";
+  updateProject,
+  type FirestoreProjectData,
+} from "@/lib/firestore/projects";
+import { uploadProjectImage, deleteProjectImage } from "@/lib/storage/projects";
+import { loginAdmin, logoutAdmin, onAuthChange, type User } from "@/lib/auth";
+import { isFirebaseConfigured } from "@/lib/firebase";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
-    meta: [{ title: "Admin — Projects | CodeXPulse" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Admin — Projects Management | CodeXPulse" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   component: AdminPage,
 });
 
 const inputClass =
-  "w-full rounded-xl border border-input bg-surface-2/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:ring-1 focus:ring-ring focus:outline-none transition-colors";
+  "w-full rounded-xl border border-input bg-surface-2/70 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-1 focus:ring-ring focus:outline-none transition-colors";
 
-function ImagePreview({ src }: { src: string }) {
+type ProjectFormData = {
+  id?: string;
+  slug: string;
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+  categories: ProjectCategory[];
+  technologies: string[];
+  image: string;
+  client: string;
+  projectType: string;
+  requirement: string;
+  challenge: string;
+  solution: string;
+  results: string[];
+  liveUrl: string;
+  githubUrl: string;
+  completionDate: string;
+  status: ProjectStatus;
+  featured: boolean;
+};
+
+function createEmptyFormData(): ProjectFormData {
+  return {
+    slug: "",
+    title: "",
+    shortDescription: "",
+    fullDescription: "",
+    categories: ["Web Development"],
+    technologies: [],
+    image: "",
+    client: "",
+    projectType: "Web Development",
+    requirement: "",
+    challenge: "",
+    solution: "",
+    results: [],
+    liveUrl: "",
+    githubUrl: "",
+    completionDate: new Date().toISOString().slice(0, 7),
+    status: "Completed",
+    featured: false,
+  };
+}
+
+function ImageThumbnail({ src, alt }: { src: string; alt: string }) {
   const [error, setError] = useState(false);
   useEffect(() => setError(false), [src]);
 
-  if (!src.trim()) return null;
-
-  if (error) {
+  if (!src || error) {
     return (
-      <div className="mt-2 flex h-24 w-36 items-center justify-center rounded-lg border border-border bg-surface-2/40">
-        <ImageOff className="h-5 w-5 text-muted-foreground" />
+      <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2/50">
+        <ImageOff className="h-4 w-4 text-muted-foreground/40" />
       </div>
     );
   }
@@ -64,933 +118,1079 @@ function ImagePreview({ src }: { src: string }) {
   return (
     <img
       src={src}
-      alt="Preview"
+      alt={alt}
       onError={() => setError(true)}
-      className="mt-2 h-24 w-36 rounded-lg border border-border object-cover"
+      className="h-14 w-20 shrink-0 rounded-lg border border-border object-cover"
     />
   );
 }
 
 function AdminPage() {
-  const [authed, setAuthed] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [form, setForm] = useState<CustomProjectInput>(createEmptyInput());
-  const [projects, setProjects] = useState<CustomProjectInput[]>([]);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState<string>("All");
+
+  // Modal / Form state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<ProjectFormData>(createEmptyFormData());
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Helper inputs for arrays
   const [techInput, setTechInput] = useState("");
   const [resultInput, setResultInput] = useState("");
-  const [galleryInput, setGalleryInput] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
 
-  async function publishToWebsite() {
-    setIsPublishing(true);
-    const toastId = toast.loading("Publishing projects to the website...");
+  // Delete confirmation modal state
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Listen to auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthChange((currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => {
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
+  }, []);
+
+  // Fetch projects when authenticated
+  async function refreshProjects() {
+    setDataLoading(true);
     try {
-      const res = await saveBlobProjects(projects);
-      if (res.success) {
-        toast.success("Successfully published to all browsers!", { id: toastId });
-      } else {
-        toast.error(`Publish failed: ${res.error}`, { id: toastId });
-      }
+      const items = await getProjects();
+      setProjects(items);
     } catch (err) {
-      toast.error(`Failed to publish: ${String(err)}`, { id: toastId });
+      toast.error(`Failed to load projects: ${String(err)}`);
     } finally {
-      setIsPublishing(false);
+      setDataLoading(false);
     }
   }
 
   useEffect(() => {
-    setAuthed(sessionStorage.getItem(ADMIN_SESSION_KEY) === "1");
-    void fetchPublishedCustomProjects().then(() => {
-      const initial = getInitialAdminProjectInputs();
-      setProjects(initial);
-      saveLocalCustomProjects(initial);
-    });
-  }, []);
+    if (user) {
+      void refreshProjects();
+    }
+  }, [user]);
 
-  const slugPreview = useMemo(() => (form.title ? getSlug(form.title) : ""), [form.title]);
-
-  function login(e: FormEvent) {
+  async function handleLogin(e: FormEvent) {
     e.preventDefault();
-    if (password !== adminPassword) {
-      toast.error("Incorrect admin password.");
-      return;
-    }
-    sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
-    setAuthed(true);
-    toast.success("Admin access granted.");
-  }
-
-  function logout() {
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    setAuthed(false);
-  }
-
-  function toggleCategory(category: ProjectCategory) {
-    setForm((prev) => {
-      const has = prev.categories.includes(category);
-      const categories = has
-        ? prev.categories.filter((c) => c !== category)
-        : [...prev.categories, category];
-      return { ...prev, categories: categories.length ? categories : [category] };
-    });
-  }
-
-  function addTech() {
-    const tech = techInput.trim();
-    if (!tech) return;
-    if (form.technologies.includes(tech)) {
-      toast.error("Technology already added.");
-      return;
-    }
-    setForm((prev) => ({ ...prev, technologies: [...prev.technologies, tech] }));
-    setTechInput("");
-  }
-
-  function removeTech(tech: string) {
-    setForm((prev) => ({
-      ...prev,
-      technologies: prev.technologies.filter((t) => t !== tech),
-    }));
-  }
-
-  function addResult() {
-    const result = resultInput.trim();
-    if (!result) return;
-    setForm((prev) => ({ ...prev, results: [...prev.results, result] }));
-    setResultInput("");
-  }
-
-  function removeResult(index: number) {
-    setForm((prev) => ({
-      ...prev,
-      results: prev.results.filter((_, i) => i !== index),
-    }));
-  }
-
-  function addGalleryImage() {
-    const url = galleryInput.trim();
-    if (!url) return;
-    setForm((prev) => ({ ...prev, gallery: [...prev.gallery, url] }));
-    setGalleryInput("");
-  }
-
-  function removeGalleryImage(index: number) {
-    setForm((prev) => ({
-      ...prev,
-      gallery: prev.gallery.filter((_, i) => i !== index),
-    }));
-  }
-
-  function saveProject(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.title.trim() || !form.shortDescription.trim() || !form.image.trim()) {
-      toast.error("Title, short description and image link are required.");
-      return;
-    }
-    if (!form.categories.length) {
-      toast.error("Select at least one category.");
+    if (!email.trim() || !password) {
+      toast.error("Please enter email and password.");
       return;
     }
 
-    const cleaned: CustomProjectInput = {
-      ...form,
-      liveUrl: form.liveUrl?.trim() || "",
-      githubUrl: form.githubUrl?.trim() || "",
-    };
-
-    let next: CustomProjectInput[];
-    if (editingIndex !== null) {
-      next = [...projects];
-      next[editingIndex] = cleaned;
-      toast.success("Project updated.");
-    } else {
-      next = [...projects, cleaned];
-      toast.success("Project added. Download JSON to publish.");
+    setLoginLoading(true);
+    try {
+      await loginAdmin(email, password);
+      toast.success("Welcome to CodeXPulse Admin!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Login failed: ${msg}`);
+    } finally {
+      setLoginLoading(false);
     }
-
-    setProjects(next);
-    saveLocalCustomProjects(next);
-    resetForm();
   }
 
-  function resetForm() {
-    setForm(createEmptyInput());
-    setEditingIndex(null);
+  async function handleLogout() {
+    try {
+      await logoutAdmin();
+      setUser(null);
+      toast.success("Logged out successfully.");
+    } catch (err) {
+      toast.error(`Logout failed: ${String(err)}`);
+    }
+  }
+
+  function openCreateModal() {
+    setIsEditing(false);
+    setFormData(createEmptyFormData());
+    setSelectedFile(null);
+    setUploadProgress(null);
     setTechInput("");
     setResultInput("");
-    setGalleryInput("");
     setShowAdvanced(false);
+    setModalOpen(true);
   }
 
-  function startEdit(index: number) {
-    const project = projects[index];
-    if (!project) return;
-    setForm({ ...project });
-    setEditingIndex(index);
-    setShowAdvanced(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  function openEditModal(project: Project) {
+    setIsEditing(true);
+    setFormData({
+      id: project.slug,
+      slug: project.slug,
+      title: project.title,
+      shortDescription: project.shortDescription,
+      fullDescription: project.fullDescription,
+      categories: project.categories,
+      technologies: project.technologies,
+      image: project.image,
+      client: project.client,
+      projectType: project.projectType,
+      requirement: project.requirement,
+      challenge: project.challenge,
+      solution: project.solution,
+      results: project.results,
+      liveUrl: project.liveUrl || "",
+      githubUrl: project.githubUrl || "",
+      completionDate: project.completionDate,
+      status: project.status,
+      featured: true,
+    });
+    setSelectedFile(null);
+    setUploadProgress(null);
+    setTechInput("");
+    setResultInput("");
+    setShowAdvanced(false);
+    setModalOpen(true);
   }
 
-  function removeProject(index: number) {
-    const next = projects.filter((_, i) => i !== index);
-    setProjects(next);
-    saveLocalCustomProjects(next);
-    if (editingIndex === index) resetForm();
-    toast.success("Project removed.");
+  async function handleFormSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!formData.title.trim()) {
+      toast.error("Project Title is required.");
+      return;
+    }
+    if (!formData.shortDescription.trim()) {
+      toast.error("Short Description is required.");
+      return;
+    }
+    if (!formData.image.trim() && !selectedFile) {
+      toast.error("Please provide a project image or upload an image file.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const targetSlug = formData.slug.trim() || slugify(formData.title);
+
+    try {
+      let finalImageUrl = formData.image.trim();
+
+      // Upload image to Firebase Storage if a file was chosen
+      if (selectedFile) {
+        setUploadProgress(0);
+        finalImageUrl = await uploadProjectImage(
+          selectedFile,
+          targetSlug,
+          (progress) => setUploadProgress(progress)
+        );
+      }
+
+      const payload: FirestoreProjectData = {
+        slug: targetSlug,
+        title: formData.title.trim(),
+        shortDescription: formData.shortDescription.trim(),
+        fullDescription: formData.fullDescription.trim() || formData.shortDescription.trim(),
+        categories: formData.categories.length > 0 ? formData.categories : ["Web Development"],
+        technologies: formData.technologies,
+        image: finalImageUrl,
+        client: formData.client.trim() || "Client Project",
+        projectType: formData.projectType.trim() || (formData.categories[0] ?? "Web Development"),
+        requirement: formData.requirement.trim() || formData.shortDescription.trim(),
+        challenge: formData.challenge.trim(),
+        solution: formData.solution.trim(),
+        results: formData.results,
+        liveUrl: formData.liveUrl.trim() || undefined,
+        githubUrl: formData.githubUrl.trim() || undefined,
+        completionDate: formData.completionDate || new Date().toISOString().slice(0, 7),
+        status: formData.status,
+        featured: formData.featured,
+      };
+
+      if (isEditing && formData.id) {
+        await updateProject(formData.id, payload);
+        toast.success(`Project "${formData.title}" updated successfully!`);
+      } else {
+        await createProject(payload);
+        toast.success(`Project "${formData.title}" created successfully!`);
+      }
+
+      setModalOpen(false);
+      await refreshProjects();
+    } catch (err) {
+      toast.error(`Save failed: ${String(err)}`);
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress(null);
+    }
   }
 
-  function moveProject(index: number, direction: "up" | "down") {
-    const swapIndex = direction === "up" ? index - 1 : index + 1;
-    if (swapIndex < 0 || swapIndex >= projects.length) return;
-    const next = [...projects];
-    const a = next[index];
-    const b = next[swapIndex];
-    if (!a || !b) return;
-    next[index] = b;
-    next[swapIndex] = a;
-    setProjects(next);
-    saveLocalCustomProjects(next);
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteProject(deleteTarget.slug);
+      // If project had a Firebase Storage image, delete it
+      if (deleteTarget.image) {
+        await deleteProjectImage(deleteTarget.image);
+      }
+      toast.success(`Project "${deleteTarget.title}" deleted.`);
+      setDeleteTarget(null);
+      await refreshProjects();
+    } catch (err) {
+      toast.error(`Delete failed: ${String(err)}`);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
-  function toggleFeatured(index: number) {
-    const next = [...projects];
-    const item = next[index];
-    if (!item) return;
-    next[index] = { ...item, featured: !item.featured };
-    setProjects(next);
-    saveLocalCustomProjects(next);
+  async function handleSeedProjects() {
+    const loadingToast = toast.loading("Seeding initial projects to Firestore...");
+    try {
+      const count = await seedInitialProjectsIfEmpty();
+      if (count > 0) {
+        toast.success(`Seeded ${count} initial projects!`, { id: loadingToast });
+        await refreshProjects();
+      } else {
+        toast.info("Firestore already contains projects. No seeding needed.", { id: loadingToast });
+      }
+    } catch (err) {
+      toast.error(`Seed failed: ${String(err)}`, { id: loadingToast });
+    }
   }
 
-  function downloadJson() {
-    const blob = new Blob([exportCustomProjectsJson(projects)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "custom-projects.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
-    toast.success("JSON downloaded. Replace public/data/custom-projects.json and redeploy.");
-  }
+  // Filtered projects list
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
+      const matchSearch =
+        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.technologies.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchCat =
+        filterCategory === "All" || p.categories.includes(filterCategory as ProjectCategory);
+      return matchSearch && matchCat;
+    });
+  }, [projects, searchQuery, filterCategory]);
 
-  function reloadAllProjects() {
-    localStorage.removeItem("codexpulse-custom-projects");
-    const initial = getInitialAdminProjectInputs();
-    setProjects(initial);
-    saveLocalCustomProjects(initial);
-    toast.success(`Loaded all ${initial.length} projects!`);
-  }
-
-  // Login screen
-  if (!authed) {
+  // If Firebase is not configured, show helpful banner
+  if (!isFirebaseConfigured()) {
     return (
-      <Section className="min-h-[70vh]">
-        <Container className="mx-auto max-w-md">
-          <Eyebrow>Admin</Eyebrow>
-          <h1 className="mt-4 text-3xl font-semibold">Project manager</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Sign in to add or update portfolio projects. Customers only see the published site.
-          </p>
-          <form onSubmit={login} className="glass-card mt-8 space-y-4 rounded-2xl p-7">
-            <label className="block text-sm font-medium" htmlFor="admin-password">
-              Admin password
-            </label>
-            <input
-              id="admin-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-              placeholder="Enter admin password"
-            />
-            <Button type="submit" variant="hero" className="w-full">
-              <Lock className="h-4 w-4" /> Sign in
-            </Button>
-          </form>
+      <Section className="py-24">
+        <Container className="max-w-xl">
+          <div className="glass-card rounded-2xl border border-amber-500/30 p-8 text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-amber-400" />
+            <h1 className="mt-4 text-2xl font-semibold">Firebase Configuration Required</h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Please configure your Firebase environment variables in <code className="rounded bg-surface-2 px-1.5 py-0.5 text-foreground">.env</code> or Vercel:
+            </p>
+            <div className="mt-4 rounded-xl border border-border bg-surface/80 p-4 text-left font-mono text-xs text-muted-foreground">
+              <div>VITE_FIREBASE_API_KEY=...</div>
+              <div>VITE_FIREBASE_AUTH_DOMAIN=...</div>
+              <div>VITE_FIREBASE_PROJECT_ID=...</div>
+              <div>VITE_FIREBASE_STORAGE_BUCKET=...</div>
+              <div>VITE_FIREBASE_MESSAGING_SENDER_ID=...</div>
+              <div>VITE_FIREBASE_APP_ID=...</div>
+            </div>
+          </div>
         </Container>
       </Section>
     );
   }
 
-  // Admin dashboard
-  return (
-    <>
-      <section className="border-b border-border py-16">
-        <Container>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <Eyebrow>Admin</Eyebrow>
-              <h1 className="mt-4 text-3xl font-semibold">
-                {editingIndex !== null ? "Edit project" : "Add portfolio projects"}
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-                Fill in the form, save the project, then download the JSON file and replace{" "}
-                <code className="text-primary-soft">public/data/custom-projects.json</code> in your
-                project so every visitor sees the new work.
+  // Authentication Loading State
+  if (authLoading) {
+    return (
+      <Section className="py-32">
+        <Container className="flex flex-col items-center justify-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Verifying authentication...</p>
+        </Container>
+      </Section>
+    );
+  }
+
+  // Login Screen
+  if (!user) {
+    return (
+      <Section className="py-24">
+        <Container className="max-w-md">
+          <div className="glass-card relative overflow-hidden rounded-3xl border border-border p-8 sm:p-10">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/40 bg-primary/10 text-primary">
+                <Lock className="h-7 w-7" />
+              </div>
+              <Eyebrow className="mt-6">CodeXPulse</Eyebrow>
+              <h1 className="mt-2 text-2xl font-semibold">Admin Portal</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Sign in with your Firebase administrator account to manage projects.
               </p>
             </div>
-            <div className="flex gap-2">
-              {editingIndex !== null && (
-                <Button variant="outlineSoft" onClick={resetForm}>
-                  <X className="h-4 w-4" /> Cancel edit
-                </Button>
-              )}
-              <Button variant="outlineSoft" onClick={logout}>
-                Sign out
+
+            <form onSubmit={handleLogin} className="mt-8 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@codexpulse.com"
+                  autoComplete="email"
+                  required
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    autoComplete="current-password"
+                    required
+                    className={`${inputClass} pr-10`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="hero"
+                size="lg"
+                disabled={loginLoading}
+                className="w-full justify-center mt-6"
+              >
+                {loginLoading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In to Dashboard"
+                )}
               </Button>
+            </form>
+          </div>
+        </Container>
+      </Section>
+    );
+  }
+
+  // Authenticated Admin Dashboard
+  return (
+    <>
+      <section className="hero-glow relative border-b border-border py-10 sm:py-14">
+        <div className="grid-lines pointer-events-none absolute inset-0" aria-hidden />
+        <Container className="relative">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <Eyebrow>Admin Dashboard</Eyebrow>
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">
+                  Firebase Connected
+                </span>
+              </div>
+              <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Project Management</h1>
+              <p className="mt-1 text-xs text-muted-foreground">Logged in as {user.email}</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSeedProjects}
+                className="border-border text-xs"
+              >
+                <Database className="mr-1.5 h-3.5 w-3.5" />
+                Seed Initial
+              </Button>
+
+              <Button
+                type="button"
+                variant="hero"
+                size="sm"
+                onClick={openCreateModal}
+                className="text-xs"
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Add Project
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="border-border text-xs hover:border-red-500/40 hover:text-red-400"
+              >
+                <LogOut className="mr-1.5 h-3.5 w-3.5" />
+                Logout
+              </Button>
+            </div>
+          </div>
+
+          {/* Quick Stats Bar */}
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-xs text-muted-foreground">Total Projects</div>
+              <div className="mt-1 text-2xl font-semibold">{projects.length}</div>
+            </div>
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-xs text-muted-foreground">Categories</div>
+              <div className="mt-1 text-2xl font-semibold">
+                {new Set(projects.flatMap((p) => p.categories)).size}
+              </div>
+            </div>
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-xs text-muted-foreground">Active Web</div>
+              <div className="mt-1 text-2xl font-semibold">
+                {projects.filter((p) => p.categories.includes("Web Development")).length}
+              </div>
+            </div>
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-xs text-muted-foreground">Storage Host</div>
+              <div className="mt-1 text-sm font-medium text-primary">Firebase Cloud</div>
             </div>
           </div>
         </Container>
       </section>
 
       <Section>
-        <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-          {/* Project form */}
-          <form onSubmit={saveProject} className="glass-card space-y-5 rounded-2xl p-7">
-            <h2 className="text-lg font-semibold">
-              {editingIndex !== null ? "Editing project" : "New project"}
-            </h2>
+        {/* Filters & Search */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search projects or technologies..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`${inputClass} pl-10`}
+            />
+          </div>
 
-            {/* Title */}
-            <div>
-              <label className="text-sm font-medium" htmlFor="title">
-                Project title *
-              </label>
-              <input
-                id="title"
-                value={form.title}
-                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                className={`mt-2 ${inputClass}`}
-                placeholder="E-Commerce storefront redesign"
-              />
-              {slugPreview && (
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  URL slug: /projects/{slugPreview}
+          <div className="flex flex-wrap gap-1.5">
+            {["All", ...projectCategories].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setFilterCategory(cat)}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                  filterCategory === cat
+                    ? "border-primary/60 bg-primary/15 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Projects List */}
+        {dataLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+            <p className="mt-3 text-sm text-muted-foreground">Loading Firestore projects...</p>
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="glass-card mt-6 rounded-2xl p-12 text-center">
+            <Sparkles className="mx-auto h-8 w-8 text-muted-foreground/40" />
+            <p className="mt-3 text-base font-medium">No projects found</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {projects.length === 0
+                ? "Your Firestore collection is currently empty. Click 'Add Project' or 'Seed Initial' to get started."
+                : "Try adjusting your search query or filter category."}
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 space-y-3">
+            {filteredProjects.map((project) => (
+              <div
+                key={project.slug}
+                className="glass-card group flex flex-col gap-4 rounded-2xl border border-border p-4 transition-all hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  <ImageThumbnail src={project.image} alt={project.title} />
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {project.title}
+                      </h3>
+                      {project.status && (
+                        <span className="rounded-md border border-border bg-surface px-2 py-0.5 text-[11px] text-muted-foreground">
+                          {project.status}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 line-clamp-1 max-w-xl text-xs text-muted-foreground">
+                      {project.shortDescription}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {project.categories.map((c) => (
+                        <span
+                          key={c}
+                          className="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] text-primary"
+                        >
+                          {c}
+                        </span>
+                      ))}
+                      {project.technologies.slice(0, 3).map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  {project.liveUrl && (
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-lg border border-border p-2 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                      title="View Live Site"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditModal(project)}
+                    className="border-border text-xs hover:border-primary/40"
+                  >
+                    <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeleteTarget(project)}
+                    className="border-border text-xs text-red-400 hover:border-red-500/40 hover:bg-red-500/10"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Add / Edit Project Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
+          <div className="glass-card max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-border p-6 sm:p-8 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {isEditing ? `Edit "${formData.title}"` : "Add New Project"}
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Saved directly into Firebase Firestore and Storage.
                 </p>
-              )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="rounded-lg border border-border p-1.5 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {/* Short description */}
-            <div>
-              <label className="text-sm font-medium" htmlFor="shortDescription">
-                Short description *
-              </label>
-              <textarea
-                id="shortDescription"
-                rows={3}
-                value={form.shortDescription}
-                onChange={(e) => setForm((p) => ({ ...p, shortDescription: e.target.value }))}
-                className={`mt-2 ${inputClass}`}
-                placeholder="One or two sentences for the project card."
-              />
-            </div>
+            <form onSubmit={handleFormSubmit} className="mt-6 space-y-4">
+              {/* Title & Slug */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-foreground">
+                    Project Title <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => {
+                      const newTitle = e.target.value;
+                      setFormData({
+                        ...formData,
+                        title: newTitle,
+                        slug: isEditing ? formData.slug : slugify(newTitle),
+                      });
+                    }}
+                    placeholder="e.g. Modern E-Commerce Platform"
+                    required
+                    className={inputClass}
+                  />
+                </div>
 
-            {/* Image URL / File Upload */}
-            <div>
-              <label className="text-sm font-medium">
-                Project Image *
-              </label>
-              <div className="mt-2 flex flex-col gap-3.5 sm:flex-row sm:items-center">
-                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary-soft transition-colors hover:bg-primary/20">
-                  <Upload className="h-4 w-4" />
-                  Select Image from Computer
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-foreground">
+                    URL Slug
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: slugify(e.target.value) })}
+                    placeholder="modern-ecommerce-platform"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                  Short Description <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.shortDescription}
+                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                  placeholder="A concise overview shown on project cards..."
+                  required
+                  className={inputClass}
+                />
+              </div>
+
+              {/* Project Image */}
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                  Project Image <span className="text-red-400">*</span>
+                </label>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <input
                     type="file"
                     accept="image/*"
-                    className="hidden"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          const base64 = event.target?.result as string;
-                          if (base64) {
-                            setForm((p) => ({ ...p, image: base64 }));
-                            toast.success("Image loaded from computer!");
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setSelectedFile(file);
+                        setFormData({ ...formData, image: URL.createObjectURL(file) });
                       }
                     }}
+                    className="text-xs text-muted-foreground file:mr-3 file:rounded-xl file:border file:border-primary/40 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
                   />
-                </label>
-                <span className="text-xs text-muted-foreground text-center sm:text-left">or enter image link below:</span>
-              </div>
-              <input
-                id="image"
-                value={form.image}
-                onChange={(e) => setForm((p) => ({ ...p, image: e.target.value }))}
-                className={`mt-2.5 ${inputClass}`}
-                placeholder="https://... or /projects/my-image.png"
-              />
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                You can select a photo directly from your computer or paste an image URL.
-              </p>
-              <ImagePreview src={form.image} />
-            </div>
 
-            {/* Categories */}
-            <div>
-              <p className="text-sm font-medium">Categories *</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {projectCategories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => toggleCategory(category)}
-                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                      form.categories.includes(category)
-                        ? "border-primary/60 bg-primary/15 text-primary-soft"
-                        : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
+                  <span className="text-xs text-muted-foreground">or URL:</span>
 
-            {/* Technologies */}
-            <div>
-              <p className="text-sm font-medium">Technologies / Stack</p>
-              
-              {/* Quick Select Buttons */}
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {[
-                  "React",
-                  "Next.js",
-                  "TypeScript",
-                  "Tailwind CSS",
-                  "Node.js",
-                  "Python",
-                  "Flutter",
-                  "Figma",
-                  "PostgreSQL",
-                  "MongoDB",
-                  "GraphQL",
-                  "REST API",
-                  "Docker",
-                  "AWS",
-                  "Vite",
-                  "PHP",
-                  "Laravel",
-                  "Shopify",
-                  "WordPress",
-                  "Photoshop",
-                  "Illustrator",
-                ].map((tech) => {
-                  const selected = form.technologies.includes(tech);
-                  return (
-                    <button
-                      key={tech}
-                      type="button"
-                      onClick={() => {
-                        setForm((prev) => ({
-                          ...prev,
-                          technologies: selected
-                            ? prev.technologies.filter((t) => t !== tech)
-                            : [...prev.technologies, tech],
-                        }));
-                      }}
-                      className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
-                        selected
-                          ? "border-primary/60 bg-primary/15 font-medium text-primary-soft"
-                          : "border-border/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                      }`}
-                    >
-                      {selected ? "✓ " : "+ "}
-                      {tech}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Custom Tech Input */}
-              <div className="mt-3 flex gap-2">
-                <input
-                  id="technologies"
-                  value={techInput}
-                  onChange={(e) => setTechInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addTech();
-                    }
-                  }}
-                  className={inputClass}
-                  placeholder="Or type a custom technology and press Enter..."
-                />
-                <Button type="button" variant="outlineSoft" size="sm" onClick={addTech}>
-                  Add
-                </Button>
-              </div>
-
-              {/* Selected Tech Chips List */}
-              {form.technologies.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground">Selected ({form.technologies.length}):</p>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {form.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary-soft"
-                      >
-                        {tech}
-                        <button
-                          type="button"
-                          onClick={() => removeTech(tech)}
-                          className="ml-0.5 text-muted-foreground hover:text-destructive"
-                          aria-label={`Remove ${tech}`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Live URL & GitHub */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium" htmlFor="liveUrl">
-                  Live site URL
-                </label>
-                <input
-                  id="liveUrl"
-                  value={form.liveUrl ?? ""}
-                  onChange={(e) => setForm((p) => ({ ...p, liveUrl: e.target.value }))}
-                  className={`mt-2 ${inputClass}`}
-                  placeholder="https://client-site.com"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium" htmlFor="githubUrl">
-                  GitHub URL
-                </label>
-                <input
-                  id="githubUrl"
-                  value={form.githubUrl ?? ""}
-                  onChange={(e) => setForm((p) => ({ ...p, githubUrl: e.target.value }))}
-                  className={`mt-2 ${inputClass}`}
-                  placeholder="https://github.com/..."
-                />
-              </div>
-            </div>
-
-            {/* Completion date & Featured */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium" htmlFor="completionDate">
-                  Completion date
-                </label>
-                <input
-                  id="completionDate"
-                  type="month"
-                  value={form.completionDate}
-                  onChange={(e) => setForm((p) => ({ ...p, completionDate: e.target.value }))}
-                  className={`mt-2 ${inputClass}`}
-                />
-              </div>
-              <div className="flex items-end">
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-input bg-surface-2/60 px-4 py-2.5 text-sm">
                   <input
-                    type="checkbox"
-                    checked={form.featured}
-                    onChange={(e) => setForm((p) => ({ ...p, featured: e.target.checked }))}
-                    className="accent-primary"
+                    type="text"
+                    value={formData.image}
+                    onChange={(e) => {
+                      setSelectedFile(null);
+                      setFormData({ ...formData, image: e.target.value });
+                    }}
+                    placeholder="https://... or /projects/image.png"
+                    className={`${inputClass} flex-1`}
                   />
-                  <Star className="h-4 w-4 text-primary" />
-                  Featured project
-                </label>
+                </div>
+
+                {uploadProgress !== null && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Uploading to Firebase Storage...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+                      <div
+                        className="h-full bg-primary transition-all"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {formData.image && (
+                  <div className="mt-2">
+                    <ImageThumbnail src={formData.image} alt="Preview" />
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Advanced fields toggle */}
-            <button
-              type="button"
-              onClick={() => setShowAdvanced((v) => !v)}
-              className="flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-            >
-              <span>Case study details (optional)</span>
-              {showAdvanced ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </button>
-
-            {showAdvanced && (
-              <div className="space-y-5 border-t border-border pt-5">
-                {/* Full description */}
-                <div>
-                  <label className="text-sm font-medium" htmlFor="fullDescription">
-                    Full description / Case study
-                  </label>
-                  <textarea
-                    id="fullDescription"
-                    rows={5}
-                    value={form.fullDescription}
-                    onChange={(e) => setForm((p) => ({ ...p, fullDescription: e.target.value }))}
-                    className={`mt-2 ${inputClass}`}
-                    placeholder="Detailed project description for the case study page."
-                  />
+              {/* Categories */}
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                  Categories
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {projectCategories.map((cat) => {
+                    const isSelected = formData.categories.includes(cat);
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          const updated = isSelected
+                            ? formData.categories.filter((c) => c !== cat)
+                            : [...formData.categories, cat];
+                          setFormData({ ...formData, categories: updated });
+                        }}
+                        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                          isSelected
+                            ? "border-primary bg-primary/20 text-primary-soft font-medium"
+                            : "border-border text-muted-foreground hover:border-primary/40"
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3" />}
+                        {cat}
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
 
-                {/* Client & Project Type */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium" htmlFor="client">
-                      Client name
-                    </label>
-                    <input
-                      id="client"
-                      value={form.client}
-                      onChange={(e) => setForm((p) => ({ ...p, client: e.target.value }))}
-                      className={`mt-2 ${inputClass}`}
-                      placeholder="Client or company name"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium" htmlFor="projectType">
-                      Project type
-                    </label>
-                    <input
-                      id="projectType"
-                      value={form.projectType}
-                      onChange={(e) => setForm((p) => ({ ...p, projectType: e.target.value }))}
-                      className={`mt-2 ${inputClass}`}
-                      placeholder="e.g. E-commerce storefront"
-                    />
-                  </div>
-                </div>
-
-                {/* Challenge & Solution */}
-                <div>
-                  <label className="text-sm font-medium" htmlFor="challenge">
-                    Challenge
-                  </label>
-                  <textarea
-                    id="challenge"
-                    rows={3}
-                    value={form.challenge}
-                    onChange={(e) => setForm((p) => ({ ...p, challenge: e.target.value }))}
-                    className={`mt-2 ${inputClass}`}
-                    placeholder="What was the main challenge?"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium" htmlFor="solution">
-                    Solution
-                  </label>
-                  <textarea
-                    id="solution"
-                    rows={3}
-                    value={form.solution}
-                    onChange={(e) => setForm((p) => ({ ...p, solution: e.target.value }))}
-                    className={`mt-2 ${inputClass}`}
-                    placeholder="How did CodeXPulse solve it?"
-                  />
-                </div>
-
-                {/* Results */}
-                <div>
-                  <label className="text-sm font-medium" htmlFor="results">
-                    Results / Outcomes
-                  </label>
-                  <div className="mt-2 flex gap-2">
-                    <input
-                      id="results"
-                      value={resultInput}
-                      onChange={(e) => setResultInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addResult();
+              {/* Technologies */}
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                  Technologies
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={techInput}
+                    onChange={(e) => setTechInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (techInput.trim() && !formData.technologies.includes(techInput.trim())) {
+                          setFormData({
+                            ...formData,
+                            technologies: [...formData.technologies, techInput.trim()],
+                          });
+                          setTechInput("");
                         }
-                      }}
+                      }
+                    }}
+                    placeholder="e.g. React, Node.js (Press Enter to add)"
+                    className={inputClass}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (techInput.trim() && !formData.technologies.includes(techInput.trim())) {
+                        setFormData({
+                          ...formData,
+                          technologies: [...formData.technologies, techInput.trim()],
+                        });
+                        setTechInput("");
+                      }
+                    }}
+                    className="border-border text-xs"
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {formData.technologies.map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-foreground"
+                    >
+                      {t}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            technologies: formData.technologies.filter((x) => x !== t),
+                          })
+                        }
+                        className="text-muted-foreground hover:text-red-400"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* URLs */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-foreground">
+                    Live URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.liveUrl}
+                    onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
+                    placeholder="https://example.com"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-foreground">
+                    GitHub URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.githubUrl}
+                    onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
+                    placeholder="https://github.com/..."
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Advanced Accordion Toggle */}
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline pt-2"
+              >
+                {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {showAdvanced ? "Hide Advanced Case Study Details" : "Show Advanced Case Study Details (Challenge, Solution, Results)"}
+              </button>
+
+              {showAdvanced && (
+                <div className="space-y-4 rounded-2xl border border-border bg-surface/50 p-4">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-foreground">
+                      Full Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.fullDescription}
+                      onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
+                      placeholder="Detailed case study background..."
                       className={inputClass}
-                      placeholder="e.g. 40% increase in conversion — press Enter"
                     />
-                    <Button type="button" variant="outlineSoft" size="sm" onClick={addResult}>
-                      Add
-                    </Button>
                   </div>
-                  {form.results.length > 0 && (
-                    <ul className="mt-2 space-y-1.5">
-                      {form.results.map((result, i) => (
-                        <li
-                          key={`${result}-${i}`}
-                          className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground"
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-foreground">
+                        Client Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.client}
+                        onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                        placeholder="e.g. Acme Corp"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-foreground">
+                        Status
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) =>
+                          setFormData({ ...formData, status: e.target.value as ProjectStatus })
+                        }
+                        className={inputClass}
+                      >
+                        <option value="Completed">Completed</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Concept">Concept</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-foreground">
+                      The Challenge
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.challenge}
+                      onChange={(e) => setFormData({ ...formData, challenge: e.target.value })}
+                      placeholder="What difficulties or requirements did the client face?"
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-foreground">
+                      The Solution
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.solution}
+                      onChange={(e) => setFormData({ ...formData, solution: e.target.value })}
+                      placeholder="How did CodeXPulse solve it?"
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-foreground">
+                      Key Results / Outcomes
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={resultInput}
+                        onChange={(e) => setResultInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (resultInput.trim()) {
+                              setFormData({
+                                ...formData,
+                                results: [...formData.results, resultInput.trim()],
+                              });
+                              setResultInput("");
+                            }
+                          }
+                        }}
+                        placeholder="e.g. 50% increase in checkout conversions"
+                        className={inputClass}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (resultInput.trim()) {
+                            setFormData({
+                              ...formData,
+                              results: [...formData.results, resultInput.trim()],
+                            });
+                            setResultInput("");
+                          }
+                        }}
+                        className="border-border text-xs"
+                      >
+                        Add
+                      </Button>
+                    </div>
+
+                    <div className="mt-2 space-y-1">
+                      {formData.results.map((r, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs text-foreground"
                         >
-                          <span className="line-clamp-1">{result}</span>
+                          <span>{r}</span>
                           <button
                             type="button"
-                            onClick={() => removeResult(i)}
-                            className="ml-2 shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                results: formData.results.filter((_, idx) => idx !== i),
+                              })
+                            }
+                            className="text-muted-foreground hover:text-red-400"
                           >
                             <X className="h-3.5 w-3.5" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                {/* Gallery */}
-                <div>
-                  <label className="text-sm font-medium">
-                    Gallery Images
-                  </label>
-                  <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-medium text-primary-soft transition-colors hover:bg-primary/20">
-                      <Upload className="h-3.5 w-3.5" />
-                      Select Photos from Computer
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files ?? []);
-                          if (!files.length) return;
-                          let loadedCount = 0;
-                          const newImages: string[] = [];
-
-                          files.forEach((file) => {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                              const base64 = event.target?.result as string;
-                              if (base64) newImages.push(base64);
-                              loadedCount++;
-                              if (loadedCount === files.length) {
-                                setForm((p) => ({ ...p, gallery: [...p.gallery, ...newImages] }));
-                                toast.success(`${files.length} gallery image(s) added!`);
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          });
-                        }}
-                      />
-                    </label>
-                    <span className="text-xs text-muted-foreground">or add URL below:</span>
-                  </div>
-                  <div className="mt-2 flex gap-2">
-                    <input
-                      id="gallery"
-                      value={galleryInput}
-                      onChange={(e) => setGalleryInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addGalleryImage();
-                        }
-                      }}
-                      className={inputClass}
-                      placeholder="https://... — press Enter to add"
-                    />
-                    <Button
-                      type="button"
-                      variant="outlineSoft"
-                      size="sm"
-                      onClick={addGalleryImage}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  {form.gallery.length > 0 && (
-                    <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                      {form.gallery.map((url, i) => (
-                        <div key={`${url}-${i}`} className="group relative">
-                          <ImagePreview src={url} />
-                          <button
-                            type="button"
-                            onClick={() => removeGalleryImage(i)}
-                            className="absolute -top-1 -right-1 rounded-full bg-destructive/90 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                          >
-                            <X className="h-3 w-3" />
                           </button>
                         </div>
                       ))}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalOpen(false)}
+                  disabled={isSubmitting}
+                  className="border-border text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="hero"
+                  size="sm"
+                  disabled={isSubmitting}
+                  className="text-xs"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      Saving to Firestore...
+                    </>
+                  ) : isEditing ? (
+                    "Save Changes"
+                  ) : (
+                    "Create Project"
                   )}
-                </div>
+                </Button>
               </div>
-            )}
+            </form>
+          </div>
+        </div>
+      )}
 
-            <Button type="submit" variant="hero" className="w-full">
-              {editingIndex !== null ? (
-                <>
-                  <Pencil className="h-4 w-4" /> Save changes
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" /> Add project
-                </>
-              )}
-            </Button>
-          </form>
-
-          {/* Saved projects list */}
-          <div className="space-y-6">
-            <div className="glass-card rounded-2xl p-7">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">Saved projects ({projects.length})</h2>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outlineSoft"
-                    size="sm"
-                    onClick={reloadAllProjects}
-                    title="Reload all default and custom projects"
-                  >
-                    <RotateCcw className="h-4 w-4" /> Sync All ({projects.length})
-                  </Button>
-                  <Button
-                    variant="hero"
-                    size="sm"
-                    onClick={publishToWebsite}
-                    disabled={isPublishing || !projects.length}
-                  >
-                    <Upload className="h-4 w-4" /> Publish to Website
-                  </Button>
-                  <Button
-                    variant="outlineSoft"
-                    size="sm"
-                    onClick={downloadJson}
-                    disabled={!projects.length}
-                    title="Download JSON backup"
-                  >
-                    <Download className="h-4 w-4" /> Backup JSON
-                  </Button>
-                </div>
-              </div>
-              {!projects.length ? (
-                <p className="mt-4 text-sm text-muted-foreground">No admin projects yet.</p>
-              ) : (
-                <ul className="mt-4 space-y-3">
-                  {projects.map((project, index) => (
-                    <li
-                      key={`${project.title}-${index}`}
-                      className={`rounded-xl border p-4 transition-colors ${
-                        editingIndex === index
-                          ? "border-primary/60 bg-primary/5"
-                          : "border-border"
-                      }`}
-                    >
-                      <div className="flex gap-3">
-                        <ProjectThumbnail src={project.image} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{project.title}</p>
-                            {project.featured && (
-                              <Star className="h-3.5 w-3.5 fill-primary text-primary" />
-                            )}
-                          </div>
-                          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-                            {project.shortDescription}
-                          </p>
-                          <div className="mt-1.5 flex flex-wrap gap-1">
-                            {project.categories.slice(0, 3).map((c) => (
-                              <span
-                                key={c}
-                                className="rounded-full bg-surface-2/80 px-2 py-0.5 text-[10px] text-muted-foreground"
-                              >
-                                {c}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex items-center gap-1.5">
-                        <Button
-                          variant="outlineSoft"
-                          size="sm"
-                          onClick={() => startEdit(index)}
-                          className="h-8 px-2.5"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="outlineSoft"
-                          size="sm"
-                          onClick={() => toggleFeatured(index)}
-                          className="h-8 px-2.5"
-                        >
-                          <Star
-                            className={`h-3.5 w-3.5 ${project.featured ? "fill-primary text-primary" : ""}`}
-                          />
-                        </Button>
-                        <Button
-                          variant="outlineSoft"
-                          size="sm"
-                          onClick={() => moveProject(index, "up")}
-                          disabled={index === 0}
-                          className="h-8 px-2.5"
-                        >
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="outlineSoft"
-                          size="sm"
-                          onClick={() => moveProject(index, "down")}
-                          disabled={index === projects.length - 1}
-                          className="h-8 px-2.5"
-                        >
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        </Button>
-                        <div className="flex-1" />
-                        <button
-                          type="button"
-                          onClick={() => removeProject(index)}
-                          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                          aria-label={`Remove ${project.title}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="glass-card max-w-md rounded-3xl border border-border p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400">
+              <Trash2 className="h-6 w-6" />
             </div>
-
-            <div className="glass-card rounded-2xl p-7 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">How publishing works</p>
-              <ol className="mt-3 list-decimal space-y-2 pl-5">
-                <li>Add, edit or delete projects using the form.</li>
-                <li>
-                  Click <strong>Publish to Website</strong> to save updates directly to Vercel Blob cloud storage.
-                </li>
-                <li>Updates are instantly visible to all visitors on every browser!</li>
-                <li>You can also click <strong>Backup JSON</strong> to save a local backup copy on your computer.</li>
-              </ol>
+            <h3 className="mt-4 text-lg font-semibold">Delete Project?</h3>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Are you sure you want to permanently delete{" "}
+              <strong className="text-foreground">"{deleteTarget.title}"</strong>? This will remove
+              the Firestore document and its associated storage assets. This action cannot be undone.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="border-border text-xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="border-red-500/40 bg-red-500/10 text-xs text-red-400 hover:bg-red-500/20"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Yes, Delete Project"
+                )}
+              </Button>
             </div>
           </div>
         </div>
-      </Section>
+      )}
     </>
-  );
-}
-
-function ProjectThumbnail({ src }: { src: string }) {
-  const [error, setError] = useState(false);
-
-  if (!src || error) {
-    return (
-      <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2/40">
-        <ImageOff className="h-4 w-4 text-muted-foreground" />
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={src}
-      alt=""
-      onError={() => setError(true)}
-      className="h-16 w-24 shrink-0 rounded-lg object-cover"
-    />
   );
 }

@@ -1,55 +1,34 @@
 import { useEffect, useState } from "react";
 import {
-  fetchPublishedCustomProjects,
-  getAllProjectsSync,
-  mergeProjects,
-  readLocalCustomProjects,
-  staticProjects,
+  getProjects,
+  subscribeProjects,
   type Project,
-} from "@/lib/custom-projects";
+} from "@/lib/firestore/projects";
+import { projects as initialStaticProjects } from "@/data/projects";
 
-function readLocalCustomProjectsSafe(): Project[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return readLocalCustomProjects();
-  } catch {
-    return [];
-  }
-}
-
-export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(() =>
-    typeof window === "undefined" ? staticProjects : getAllProjectsSync(),
-  );
+export function useProjects(): Project[] {
+  const [projects, setProjects] = useState<Project[]>(initialStaticProjects);
 
   useEffect(() => {
     let active = true;
 
-    async function load() {
-      const published = await fetchPublishedCustomProjects();
-      if (!active) return;
-      setProjects(mergeProjects(published, readLocalCustomProjectsSafe()));
-    }
-
-    void load();
-
-    const onUpdate = () => {
-      void load();
-    };
-
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === "codexpulse-custom-projects") {
-        void load();
+    // Initial fetch
+    void getProjects().then((items) => {
+      if (active && items.length > 0) {
+        setProjects(items);
       }
-    };
+    });
 
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("codexpulse-projects-updated", onUpdate);
+    // Real-time Firestore subscription
+    const unsubscribe = subscribeProjects((items) => {
+      if (active && items.length > 0) {
+        setProjects(items);
+      }
+    });
 
     return () => {
       active = false;
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("codexpulse-projects-updated", onUpdate);
+      if (unsubscribe) unsubscribe();
     };
   }, []);
 
