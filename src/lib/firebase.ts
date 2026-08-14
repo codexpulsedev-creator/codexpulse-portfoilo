@@ -3,27 +3,43 @@ import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
-function getEnv(key: string): string {
-  if (typeof process !== "undefined" && process.env) {
-    if (process.env[`VITE_${key}`]) return process.env[`VITE_${key}`] as string;
-    if (process.env[`NEXT_PUBLIC_${key}`]) return process.env[`NEXT_PUBLIC_${key}`] as string;
-    if (process.env[key]) return process.env[key] as string;
-  }
-  if (typeof import.meta !== "undefined" && import.meta.env) {
-    if (import.meta.env[`VITE_${key}`]) return import.meta.env[`VITE_${key}`] as string;
-    if (import.meta.env[`NEXT_PUBLIC_${key}`]) return import.meta.env[`NEXT_PUBLIC_${key}`] as string;
-    if (import.meta.env[key]) return import.meta.env[key] as string;
-  }
-  return "";
-}
+const apiKey =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_FIREBASE_API_KEY) ||
+  (typeof process !== "undefined" && process.env && (process.env.VITE_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY)) ||
+  "";
+
+const authDomain =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) ||
+  (typeof process !== "undefined" && process.env && (process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN)) ||
+  "";
+
+const projectId =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_FIREBASE_PROJECT_ID) ||
+  (typeof process !== "undefined" && process.env && (process.env.VITE_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID)) ||
+  "";
+
+const storageBucket =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) ||
+  (typeof process !== "undefined" && process.env && (process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET)) ||
+  "";
+
+const messagingSenderId =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) ||
+  (typeof process !== "undefined" && process.env && (process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID)) ||
+  "";
+
+const appId =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_FIREBASE_APP_ID) ||
+  (typeof process !== "undefined" && process.env && (process.env.VITE_FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID)) ||
+  "";
 
 export const firebaseConfig = {
-  apiKey: getEnv("FIREBASE_API_KEY"),
-  authDomain: getEnv("FIREBASE_AUTH_DOMAIN"),
-  projectId: getEnv("FIREBASE_PROJECT_ID"),
-  storageBucket: getEnv("FIREBASE_STORAGE_BUCKET"),
-  messagingSenderId: getEnv("FIREBASE_MESSAGING_SENDER_ID"),
-  appId: getEnv("FIREBASE_APP_ID"),
+  apiKey: String(apiKey).trim(),
+  authDomain: String(authDomain).trim(),
+  projectId: String(projectId).trim(),
+  storageBucket: String(storageBucket).trim(),
+  messagingSenderId: String(messagingSenderId).trim(),
+  appId: String(appId).trim(),
 };
 
 export function isFirebaseConfigured(): boolean {
