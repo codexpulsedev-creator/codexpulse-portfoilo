@@ -2,8 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { sendContactViaFormSubmit } from "@/lib/contact";
-import { emailjsConfig, isEmailjsConfigured } from "@/lib/site";
+import { sendContactRequest } from "@/lib/contact";
 
 type Fields = {
   name: string;
@@ -14,6 +13,7 @@ type Fields = {
   projectType: string;
   budget: string;
   message: string;
+  honeypot: string;
 };
 
 const empty: Fields = {
@@ -25,21 +25,21 @@ const empty: Fields = {
   projectType: "",
   budget: "",
   message: "",
+  honeypot: "",
 };
 
 const projectTypes = [
-  "Website",
+  "Web Development",
   "E-Commerce",
-  "Web Application",
-  "Mobile App",
-  "UI/UX Design",
-  "Software Development",
+  "UI/UX",
+  "Mobile Apps",
+  "Software Systems",
   "QA / Testing",
-  "Branding / Design",
+  "Branding",
   "Other",
 ];
 
-const budgets = ["Under $500", "$500 – $1,500", "$1,500 – $5,000", "$5,000+", "Not sure yet"];
+const budgets = ["Under $500", "$500 - $1,000", "$1,000 - $2,500", "$2,500+", "Not sure yet"];
 
 const inputClass =
   "w-full rounded-xl border border-input bg-surface-2/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:ring-1 focus:ring-ring focus:outline-none transition-colors";
@@ -48,14 +48,18 @@ function validate(values: Fields) {
   const errors: Partial<Record<keyof Fields, string>> = {};
   if (!values.name.trim()) errors.name = "Please enter your name.";
   else if (values.name.trim().length > 100) errors.name = "Name must be under 100 characters.";
+  
   if (!values.email.trim()) errors.email = "Please enter your email.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email.trim()))
     errors.email = "Please enter a valid email address.";
+  
   if (values.phone && values.phone.trim().length > 30) errors.phone = "Phone number is too long.";
-  if (!values.projectType) errors.projectType = "Please select a project type.";
-  if (!values.message.trim()) errors.message = "Please tell us about your project.";
-  else if (values.message.trim().length > 2000)
-    errors.message = "Message must be under 2000 characters.";
+  if (!values.projectType) errors.projectType = "Please select a service / project type.";
+  
+  if (!values.message.trim()) errors.message = "Please enter your message.";
+  else if (values.message.trim().length > 3000)
+    errors.message = "Message must be under 3000 characters.";
+  
   return errors;
 }
 
@@ -83,35 +87,27 @@ export function ContactForm() {
 
     setSending(true);
     try {
-      if (isEmailjsConfigured()) {
-        const emailjs = (await import("@emailjs/browser")).default;
-        await emailjs.send(
-          emailjsConfig.serviceId!,
-          emailjsConfig.templateId!,
-          {
-            from_name: values.name,
-            reply_to: values.email,
-            phone: values.phone,
-            subject: values.subject,
-            company: values.company,
-            project_type: values.projectType,
-            budget: values.budget,
-            message: values.message,
-          },
-          { publicKey: emailjsConfig.publicKey! },
-        );
-      } else {
-        await sendContactViaFormSubmit(values);
-      }
+      await sendContactRequest({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        company: values.company,
+        subject: values.subject,
+        projectType: values.projectType,
+        budget: values.budget,
+        message: values.message,
+        honeypot: values.honeypot,
+      });
+
       setValues(empty);
       setSent(true);
-      toast.success("Project request sent", {
-        description: "Thanks — we'll get back to you within one business day.",
+      toast.success("Project request sent successfully!", {
+        description: "Thank you for contacting CodeXPulse. We'll get back to you soon.",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("We couldn't send your request.", {
-        description: "Please try again, or email codexpulse.dev@gmail.com directly.",
+      toast.error("Unable to send your request right now. Please try again.", {
+        description: err?.message || "Please check your details or email codexpulse.dev@gmail.com directly.",
       });
     } finally {
       setSending(false);
@@ -120,6 +116,18 @@ export function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="glass-card rounded-2xl p-7 sm:p-9">
+      {/* Hidden honeypot field for spam bots */}
+      <input
+        type="text"
+        name="honeypot"
+        value={values.honeypot}
+        onChange={(e) => set("honeypot")(e.target.value)}
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+
       <h2 className="text-xl font-semibold">Tell us about your project</h2>
       <p className="mt-2 text-sm text-muted-foreground">
         The more detail you share, the more accurate our first response will be.
@@ -130,7 +138,7 @@ export function ContactForm() {
           role="status"
           className="mt-6 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-primary-soft"
         >
-          Your request has been sent. We'll reply to your email shortly.
+          Project request sent successfully! Thank you for contacting CodeXPulse. We'll get back to you soon.
         </p>
       )}
 
@@ -246,7 +254,7 @@ export function ContactForm() {
       <Button type="submit" variant="hero" size="xl" disabled={sending} className="mt-7 w-full">
         {sending ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" /> Sending…
+            <Loader2 className="h-4 w-4 animate-spin" /> Sending Request...
           </>
         ) : (
           <>
