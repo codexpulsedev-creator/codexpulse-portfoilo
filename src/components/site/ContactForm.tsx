@@ -101,13 +101,13 @@ export function ContactForm() {
 
       setValues(empty);
       setSent(true);
-      toast.success("Project request sent successfully!", {
-        description: "Thank you for contacting CodeXPulse. We'll get back to you soon.",
+      toast.success("Your project request has been sent successfully.", {
+        description: "We'll get back to you soon.",
       });
     } catch (err: any) {
-      console.error(err);
-      toast.error("Unable to send your request right now. Please try again.", {
-        description: err?.message || "Please check your details or email codexpulse.dev@gmail.com directly.",
+      console.error("EmailJS submission error:", err);
+      toast.error("Unable to send your request right now. Please try again or contact us directly.", {
+        description: "You can also email us at codexpulse.dev@gmail.com",
       });
     } finally {
       setSending(false);
@@ -138,7 +138,7 @@ export function ContactForm() {
           role="status"
           className="mt-6 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-primary-soft"
         >
-          Project request sent successfully! Thank you for contacting CodeXPulse. We'll get back to you soon.
+          Your project request has been sent successfully. We'll get back to you soon.
         </p>
       )}
 
