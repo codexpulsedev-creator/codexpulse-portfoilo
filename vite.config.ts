@@ -8,6 +8,46 @@ import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from "
 import { join } from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const ROBUST_RUNTIME_MJS = `import { createRequire } from "node:module";
+//#region \\0rolldown/runtime.js
+const __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
+function __commonJSMin(cb, mod) {
+\treturn () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+}
+function __exportAll(all, no_symbols) {
+\tlet target = {};
+\tfor (var name in all) Object.defineProperty(target, name, {
+\t\tget: all[name],
+\t\tenumerable: true
+\t});
+\tif (!no_symbols) Object.defineProperty(target, Symbol.toStringTag, { value: "Module" });
+\treturn target;
+}
+function __copyProps(to, from, except, desc) {
+\tif (from && (typeof from === "object" || typeof from === "function")) {
+\t\tfor (var keys = Object.getOwnPropertyNames(from), i = 0, n = keys.length, key; i < n; i++) {
+\t\t\tkey = keys[i];
+\t\t\tif (!Object.prototype.hasOwnProperty.call(to, key) && key !== except) {
+\t\t\t\tObject.defineProperty(to, key, {
+\t\t\t\t\tget: ((k) => from[k]).bind(null, key),
+\t\t\t\t\tenumerable: !(desc = Object.getOwnPropertyDescriptor(from, key)) || desc.enumerable
+\t\t\t\t});
+\t\t\t}
+\t\t}
+\t}
+\treturn to;
+}
+function __toESM(mod, isNodeMode, target) {
+\ttarget = mod != null ? Object.create(Object.getPrototypeOf(mod)) : {};
+\treturn __copyProps(isNodeMode || !mod || !mod.__esModule ? Object.defineProperty(target, "default", {
+\t\tvalue: mod,
+\t\tenumerable: true
+\t}) : target, mod);
+}
+//#endregion
+export { __toESM as i, __exportAll as n, __require as r, __commonJSMin as t };
+`;
+
 function patchRuntimeHelpers(dir: string) {
   try {
     const entries = readdirSync(dir);
@@ -16,15 +56,8 @@ function patchRuntimeHelpers(dir: string) {
       const stat = statSync(fullPath);
       if (stat.isDirectory()) {
         patchRuntimeHelpers(fullPath);
-      } else if (entry.endsWith(".mjs") || entry.endsWith(".js")) {
-        let content = readFileSync(fullPath, "utf-8");
-        if (content.includes("var __exportAll =")) {
-          content = content.replace(
-            /var __exportAll = \(all, no_symbols\) => \{/g,
-            "function __exportAll(all, no_symbols) {",
-          );
-          writeFileSync(fullPath, content, "utf-8");
-        }
+      } else if (entry === "_runtime.mjs" || entry.endsWith("_runtime.mjs")) {
+        writeFileSync(fullPath, ROBUST_RUNTIME_MJS, "utf-8");
       }
     }
   } catch {
