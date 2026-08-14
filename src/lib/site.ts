@@ -11,9 +11,9 @@ export const site = {
 } as const;
 
 export const emailjsConfig = {
-  serviceId: import.meta.env["VITE_EMAILJS_SERVICE_ID"] as string | undefined,
-  templateId: import.meta.env["VITE_EMAILJS_TEMPLATE_ID"] as string | undefined,
-  publicKey: import.meta.env["VITE_EMAILJS_PUBLIC_KEY"] as string | undefined,
+  serviceId: (import.meta.env.VITE_EMAILJS_SERVICE_ID as string) || "service_95x95wl",
+  templateId: (import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string) || "template_tyew6sr",
+  publicKey: (import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string) || "vjsGZjSURBiy0PF9W",
 };
 
 export const isEmailjsConfigured = () =>
