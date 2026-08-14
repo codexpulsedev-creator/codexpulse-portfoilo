@@ -86,6 +86,47 @@ export const projects: Project[] = [
     status: "Completed",
   },
   {
+    slug: "cyberpunk-gaming-ecommerce",
+    title: "Cyberpunk Gaming Gear & Custom Keyboards",
+    shortDescription:
+      "An ultimate high-contrast cyberpunk gaming gear store for headsets, RGB custom keyboards, apparel, and game case design.",
+    fullDescription:
+      "A complete e-commerce experience designed under 'Cyberpunk Gaming — Ultimate & Unmatched'. Features ultra-low latency gear, custom RGB mechanical keyboards, cyberpunk apparel, product labels, and digital artwork.",
+    categories: ["E-Commerce", "Web Development", "UI/UX", "Branding"],
+    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL", "Figma"],
+    image: "/projects/cyberpunk-gaming-board.jpg",
+    gallery: [
+      { src: "/projects/cyberpunk-gaming-board.jpg", caption: "Cyberpunk Gaming storefront, keyboards and apparel system" },
+      { src: "/projects/webe.png", caption: "Campaign presentation, mobile UI and creative assets" },
+    ],
+    client: "Gaming Gear Studio",
+    projectType: "Gaming E-Commerce & Brand",
+    requirement:
+      "Create a bold, neon-illuminated storefront for high-end mechanical keyboards, headsets, and gaming merchandise with 2-year warranty assurance.",
+    challenge:
+      "Balancing high-contrast neon teal and magenta colors while preserving strict readable contrast for product pricing and specifications.",
+    solution:
+      "Built a dark obsidian interface with neon accent glows, dedicated keyboard sound profile showcases, and streamlined mobile checkout.",
+    features: [
+      "Ultra-low latency gear spotlight and RGB customizer",
+      "Custom keyboard sound and switch collection selector",
+      "Cyberpunk urban illustration and apparel apparel shop",
+      "2-Year full warranty badge and fast delivery guarantees",
+      "Book and game collector case design showcase",
+    ],
+    process: [
+      { step: "Brand Concept", detail: "Neon-noir visual identity and typography hierarchy." },
+      { step: "UI Architecture", detail: "Dark mode card layout with accessible contrast." },
+      { step: "Build", detail: "Next.js dynamic storefront with interactive product drawers." },
+    ],
+    results: [
+      "Visually captivating gaming brand storefront",
+      "Exceptional mobile and desktop responsive performance",
+    ],
+    completionDate: "2026-05",
+    status: "Completed",
+  },
+  {
     slug: "vintage-audio-vinyl-ecommerce",
     title: "Vintage Audio & Vinyl E-Commerce",
     shortDescription:
@@ -327,6 +368,46 @@ export const projects: Project[] = [
     status: "Completed",
   },
   {
+    slug: "codexpulse-web-development-service",
+    title: "CodeXPulse Professional Web Development Service",
+    shortDescription:
+      "A one-stop professional web solution promoting custom web applications, landing pages, web analytics, SEO, e-commerce, and maintenance.",
+    fullDescription:
+      "A dedicated promotional campaign presenting CodeXPulse's comprehensive web engineering solutions. Highlights end-to-end capabilities: custom web applications, landing page sites, web analytics and reporting, SEO optimization, e-commerce development, and ongoing website maintenance and support.",
+    categories: ["Web Development", "Software Systems", "UI/UX"],
+    technologies: ["React", "Next.js", "TypeScript", "Tailwind CSS", "SEO", "Analytics"],
+    image: "/projects/codex-web-service-promo.jpg",
+    gallery: [
+      { src: "/projects/codex-web-service-promo.jpg", caption: "CodeXPulse professional web development service flyer" },
+    ],
+    client: "CodeXPulse",
+    projectType: "Professional Web Service",
+    requirement:
+      "Present an authoritative, full-service web development offering that clearly communicates our six core engineering capabilities to international business clients.",
+    challenge:
+      "Structuring multiple technical service lines into an immediately actionable value proposition with clear contact conversion.",
+    solution:
+      "Designed a high-tech corporate visual with cyber code backdrops, distinct service bullet points with custom icons, and an orange high-contrast contact trigger.",
+    features: [
+      "Custom Web Application engineering",
+      "High-converting Landing Page Site builds",
+      "Web Analytics & Performance Reporting",
+      "Search Engine Optimization (SEO)",
+      "E-Commerce platform development",
+      "Dedicated Website Maintenance & Technical Support",
+    ],
+    process: [
+      { step: "Strategy", detail: "Identifying high-demand service tiers for corporate clients." },
+      { step: "Visual Design", detail: "Cyberpunk-inspired tech aesthetic with clean service matrices." },
+    ],
+    results: [
+      "Clear positioning as an end-to-end digital partner",
+      "Accelerated client inquiry conversion",
+    ],
+    completionDate: "2026-06",
+    status: "Completed",
+  },
+  {
     slug: "codexpulse-comprehensive-solutions",
     title: "CodeXPulse Web & Digital Solutions Campaign",
     shortDescription:
@@ -363,50 +444,6 @@ export const projects: Project[] = [
       "Immediate WhatsApp conversion pathways",
     ],
     completionDate: "2026-06",
-    status: "Completed",
-  },
-  {
-    slug: "cyberpunk-gaming-ecommerce",
-    title: "Cyberpunk Gaming E-Commerce",
-    shortDescription:
-      "A high-contrast gaming gear store for headsets, custom keyboards and apparel, with a full campaign design system.",
-    fullDescription:
-      "An end-to-end e-commerce concept for a gaming hardware brand. The engagement covered the storefront, product label and packaging design, apparel artwork, and a responsive mobile experience, all driven from one shared design system.",
-    categories: ["E-Commerce", "Web Development", "UI/UX", "Branding"],
-    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL", "Figma"],
-    image: "/projects/web.png",
-    gallery: [
-      { src: "/projects/web.png", caption: "Storefront, collections and product pages" },
-      { src: "/projects/webe.png", caption: "Campaign presentation, mobile UI and creative assets" },
-    ],
-    client: "Gaming hardware brand concept",
-    projectType: "E-commerce + brand system",
-    requirement:
-      "A store with a strong gaming identity that still reads as a serious retailer, covering hardware, peripherals, apparel and collector editions.",
-    challenge:
-      "Neon-led gaming aesthetics usually destroy contrast and accessibility. The store also needed to hold very different product types under one visual language.",
-    solution:
-      "We anchored the design in a near-black base with two disciplined accents, used glow as emphasis rather than decoration, and standardised product cards so hardware, apparel and collector items share the same rhythm.",
-    features: [
-      "Featured collections carousel",
-      "Custom keyboard configurator layout",
-      "Product label and packaging design",
-      "Apparel and merchandise pages",
-      "Responsive mobile commerce UI",
-      "Reusable campaign asset templates",
-    ],
-    process: [
-      { step: "Discover", detail: "Product taxonomy across hardware, apparel and collectibles." },
-      { step: "Design", detail: "Dark UI system with accessible contrast and controlled accents." },
-      { step: "Develop", detail: "Component library shared across store and campaign pages." },
-      { step: "Test", detail: "Contrast, keyboard navigation and responsive QA passes." },
-    ],
-    results: [
-      "One design system covering store, packaging and campaign assets",
-      "Accessible contrast maintained across a dark, high-energy interface",
-      "Reusable templates that shorten future campaign turnaround",
-    ],
-    completionDate: "2026-05",
     status: "Completed",
   },
 ];
